@@ -231,16 +231,7 @@
             <p class="text-xs text-gray-500 text-center">融合 AI 原始分析 + {{ total_reviews }} 条朋友观察</p>
             {% endif %}
 
-            <!-- V1.7.1：召唤同类入口（AI 融合总结之后的下一步） -->
-            <div class="mt-6 pt-6 border-t border-white/5">
-                <div class="text-center mb-4">
-                    <p class="text-xs text-purple-300 tracking-widest mb-2">✨ 下一步</p>
-                    <h3 class="text-lg font-bold gradient-text mb-2">召唤同类</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">
-                        看看世界上有没有<br>与你运行频率接近的人
-                    </p>
-                </div>
-            </div>
+            <!-- V1.5.1: 召唤同类入口已移除（属于「寻找契合的人」功能，不属于说明书内容） -->
 
             <!-- V1.5opt: 隐藏（入口在其他页面，避免链路重复） -->
             <a
@@ -284,12 +275,7 @@
 
     <input id="share-url" type="hidden" value="{{ request.host_url }}profile/{{ share_id }}" />
 
-    <!-- V1.8.2 底部固定操作栏：随时召唤 -->
-    <div class="bottom-action-bar">
-        <a href="/summon/{{ report_id }}" class="btn-primary btn-lg w-full text-center" style="display: flex; align-items: center; justify-content: center; text-decoration: none;">
-            ✨ 召唤同类
-        </a>
-    </div>
+    <!-- V1.5.1: 召唤同类底部按钮已移除（属于「寻找契合的人」功能） -->
 
     <script>
         const REPORT_ID = {{ report_id }};

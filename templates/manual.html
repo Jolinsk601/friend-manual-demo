@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>完整说明书 · 朋友说明书</title>
     <link rel="stylesheet" href="/static/app.css?v=1">
+    <style>
+        /* V1.5.1: 朋友评价区固定高度 + 内部滚动 */
+        .manual-reviews-list {
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .manual-reviews-list::-webkit-scrollbar { width: 4px; }
+        .manual-reviews-list::-webkit-scrollbar-thumb {
+            background: rgba(196, 181, 253, 0.4);
+            border-radius: 2px;
+        }
+        /* AI 融合占位（未来入口，V1.5.1 不实现） */
+        .ai-fusion-placeholder {
+            background: rgba(139, 92, 246, 0.05);
+            border: 1px dashed rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -114,14 +136,49 @@
         </div>
         {% endif %}
 
+        <!-- V1.5.1: 完整说明书嵌入朋友评价（不跳转 reviews.html） -->
+        <div class="app-card-tight p-5 mb-6 fade-in">
+            <h3 class="text-sm font-semibold text-gray-300 mb-2 flex items-center gap-2">
+                <span>👀</span><span>朋友眼中的我（{{ reviews|length }} 条）</span>
+            </h3>
+
+            {% if reviews|length == 0 %}
+            <p class="text-xs text-gray-500 leading-relaxed">
+                把分享链接发给朋友<br>让他们补充 AI 没看到的一面
+            </p>
+            {% else %}
+            <!-- 顶部预留 AI 融合占位（V1.5.1 不实现） -->
+            <div class="ai-fusion-placeholder">
+                <p class="text-xs text-purple-300">🧠 AI 融合总结</p>
+                <p class="text-xs text-gray-500 mt-1">（V2 即将上线 · 基于朋友观察重新理解 TA）</p>
+            </div>
+
+            <!-- 固定高度 + 内部滚动 -->
+            <div class="manual-reviews-list space-y-3">
+                {% for r in reviews %}
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-sm font-medium text-white">👤 {{ r.review_user_name }}</span>
+                        {% if r.choice %}
+                        <span class="text-xs text-gray-500">
+                            {% if r.choice == 'accurate' %}🔥 AI 说中了
+                            {% elif r.choice == 'partial' %}🤔 差点东西
+                            {% else %}😂 AI 误会
+                            {% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% if r.comment %}
+                    <p class="text-sm text-gray-300 leading-relaxed">"{{ r.comment }}"</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
         <!-- 底部按钮区 -->
         <div class="mt-6 space-y-3 mb-4">
-            <a href="/reviews/{{ report_id }}" class="block w-full py-3 rounded-2xl bg-white/5 text-gray-300 text-sm text-center hover:bg-white/10">
-                👀 朋友眼中的我（{{ reviews|length }} 条）
-            </a>
-            <a href="/summon/{{ report_id }}" class="block w-full py-3 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-200 text-sm text-center border border-purple-400/30 hover:from-purple-500/30 hover:to-pink-500/30">
-                ✨ 召唤同类
-            </a>
             <a href="/me/{{ report_id }}" class="block w-full py-3 rounded-2xl bg-white/5 text-gray-400 text-sm text-center hover:bg-white/10">
                 ← 回到身份卡
             </a>

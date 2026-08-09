@@ -127,7 +127,8 @@
         {% set p = profile or {} %}
         {% set s = p.stats or {} %}
 
-        <!-- 顶部 3 tab 导航 -->
+        <!-- V1.5.1: 顶部 3 tab 导航已移除（只保留身份信息） -->
+        <!--
         <div class="tab-bar mt-2 mb-5 fade-in">
             <a class="tab-item active" href="/me/{{ report_id }}">
                 <span class="tab-item-icon">🪪</span><span>我的身份</span>
@@ -139,6 +140,7 @@
                 <span class="tab-item-icon">✨</span><span>召唤同类</span>
             </a>
         </div>
+        -->
 
         <!-- 身份卡 3D 翻转 -->
         <div class="identity-card" id="identity-card" onclick="flipCard()">
@@ -218,7 +220,8 @@
             <div class="entry-card-arrow">›</div>
         </a>
 
-        <a href="/reviews/{{ report_id }}" class="entry-card">
+        <!-- V1.5.1: 隐藏朋友评价入口（页面只展示身份卡 + 身份信息） -->
+        <a href="/reviews/{{ report_id }}" class="entry-card v15-hide">
             <div class="entry-card-icon">👀</div>
             <div class="entry-card-content">
                 <div class="entry-card-title">朋友评价</div>
@@ -244,10 +247,11 @@
         </a>
         {% endif %}
 
+        <!-- V1.5.1: 寻找契合的人（恢复显示 + 改名） -->
         <a href="/summon/{{ report_id }}" class="entry-card">
             <div class="entry-card-icon">✨</div>
             <div class="entry-card-content">
-                <div class="entry-card-title">召唤同类</div>
+                <div class="entry-card-title">寻找契合</div>
                 <div class="entry-card-desc">
                     {% if matches_count > 0 %}
                     已发现 {{ matches_count }} 个潜在同类
@@ -260,10 +264,11 @@
         </a>
 
         {% if matches_count > 0 %}
+        <!-- V1.5.1: 关系地图（恢复显示 + 改名） -->
         <a href="/social-map/{{ report_id }}" class="entry-card">
             <div class="entry-card-icon">🌌</div>
             <div class="entry-card-content">
-                <div class="entry-card-title">我的同类地图</div>
+                <div class="entry-card-title">关系地图</div>
                 <div class="entry-card-desc">{{ matches_count }} 个已发现同类 · 长期社交资产</div>
             </div>
             <div class="entry-card-arrow">›</div>

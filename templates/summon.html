@@ -152,25 +152,14 @@
 
         <!-- ============ 初始态：开始召唤 ============ -->
         <div id="summon-intro" class="fade-in">
-            <!-- V1.5 顶部 3 tab -->
-            <div class="tab-bar mt-2 mb-5">
-                <a class="tab-item" href="/me/{{ report_id }}">
-                    <span class="tab-item-icon">🪪</span><span>我的身份</span>
-                </a>
-                <a class="tab-item active" href="/summon/{{ report_id }}">
-                    <span class="tab-item-icon">✨</span><span>寻找契合</span>
-                </a>
-                <a class="tab-item" href="#">
-                    <span class="tab-item-icon">💬</span><span>认识TA</span>
-                </a>
-            </div>
+            <!-- V1.5.1: 顶部 tab 导航已移除（三个 tab 不是同一级页面） -->
 
             <div class="text-center mb-8 pt-4">
                 <div class="text-6xl mb-4">✨</div>
                 <h1 class="text-3xl font-bold mb-3 gradient-text">寻找契合的人</h1>
                 <p class="text-gray-300 text-sm leading-relaxed">
                     世界上有很多人<br>
-                    <span class="text-white font-medium">但不是每个人都和你的运行频率相同</span>
+                    <span class="text-white font-medium">找到<span class="text-purple-300">可能</span>和你频率契合的人</span>
                 </p>
             </div>
 
@@ -261,17 +250,7 @@
 
         <!-- ============ 结果态：二维图 + 滑动卡片 ============ -->
         <div id="summon-result" class="hidden">
-            <div class="tab-bar mt-2 mb-5">
-                <a class="tab-item" href="/me/{{ report_id }}">
-                    <span class="tab-item-icon">🪪</span><span>我的身份</span>
-                </a>
-                <a class="tab-item active" href="/summon/{{ report_id }}">
-                    <span class="tab-item-icon">✨</span><span>寻找契合</span>
-                </a>
-                <a class="tab-item" href="#">
-                    <span class="tab-item-icon">💬</span><span>认识TA</span>
-                </a>
-            </div>
+            <!-- V1.5.1: 顶部 tab 导航已移除 -->
 
             <div class="text-center mb-6 pt-4 fade-in">
                 <div class="text-5xl mb-3">🎯</div>

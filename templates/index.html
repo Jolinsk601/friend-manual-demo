@@ -363,8 +363,11 @@
 
             // 反馈区隐藏
             document.getElementById('feedback-area').classList.add('hidden');
-            // 自定义输入区隐藏
-            document.getElementById('custom-input-area').classList.add('hidden');
+            // V1.5.1: 自定义输入区隐藏 + 清空 value（避免复用上一题输入）
+            const customInputArea = document.getElementById('custom-input-area');
+            customInputArea.classList.add('hidden');
+            const customInputEl = document.getElementById('custom-input');
+            if (customInputEl) customInputEl.value = '';
 
             // 渲染问题 + 选项
             const html = `
@@ -431,8 +434,11 @@
         }
 
         function showCustomInput() {
+            // V1.5.1: 显示时也清空 value（三重保险）
+            const customInputEl = document.getElementById('custom-input');
+            if (customInputEl) customInputEl.value = '';
             document.getElementById('custom-input-area').classList.remove('hidden');
-            document.getElementById('custom-input').focus();
+            customInputEl.focus();
             // 禁用选项
             document.querySelectorAll('#options-list .option-btn').forEach(btn => {
                 btn.style.opacity = '0.4';
@@ -470,6 +476,9 @@
                 dim: q.dim || '',
                 feedback: '记下了，你的版本。'
             });
+
+            // V1.5.1: 提交后立即清空 input（防御 renderQuestion 之前的状态泄漏）
+            document.getElementById('custom-input').value = '';
 
             setTimeout(advance, 1200);
         }

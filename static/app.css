@@ -1380,3 +1380,6 @@ input:focus, textarea:focus, button:focus-visible {
     border-color: #a78bfa !important;
     box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
 }
+
+/* V1.5.1: 优先隐藏不删除（回滚时删这一行即可） */
+.v15-hide { display: none !important; }
