@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>说明书找不到了 · 朋友说明书</title>
+    <script src="/static/tailwind.js?v=3"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #eaeaea;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-2xl mx-auto px-4 py-20 text-center">
+        <div class="text-7xl mb-6">🤔</div>
+        <h1 class="text-3xl font-bold gradient-text mb-3">说明书找不到了</h1>
+        <p class="text-gray-400 mb-2">share_id: <code class="text-purple-300">{{ share_id }}</code></p>
+        <p class="text-gray-500 text-sm mb-8">
+            这份说明书可能还没生成，或者链接已经失效。
+        </p>
+        <a href="/" class="btn-primary inline-block px-8 py-3.5 rounded-2xl text-white font-semibold">
+            ✨ 生成我的朋友说明书
+        </a>
+    </div>
+</body>
+</html>

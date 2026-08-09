@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的朋友说明书 · Report #{{ report_id }}</title>
+    <link rel="stylesheet" href="/static/app.css?v=1">
+    <style>
+        /* V1.5opt: 优先隐藏不删除（回滚时删这一行即可） */
+        .v15-hide { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- 顶部品牌 + Report ID（V1.9 加返回身份卡） -->
+        <div class="text-center mb-4 fade-in">
+            <a href="/me/{{ report_id }}" class="text-xs text-purple-300 hover:text-purple-200">
+                ← 回到我的身份卡
+            </a>
+        </div>
+        <div class="text-center mb-6 fade-in">
+            <p class="text-xs text-gray-500">朋友说明书 · 完整说明书 #{{ report_id }}</p>
+        </div>
+
+        {% set s = profile.stats or {} %}
+        {% set ins = profile.instruction or {} %}
+        {% set ov = profile.others_view or {} %}
+        {% set share_quotes = profile.share_quotes or [] %}
+        {% set total_reviews = reviews|length %}
+
+        <!-- ============ V1.0：AI 原始报告 ============ -->
+        <div class="mb-4">
+            <span class="version-tag bg-blue-500/20 text-blue-300">V1.0 · AI 初识</span>
+        </div>
+
+        <div class="hero-card rounded-3xl p-7 text-center glow mb-6 fade-in">
+            <p class="text-xs text-gray-400 mb-2 tracking-widest">你的隐藏身份</p>
+            <h1 class="text-4xl font-bold gradient-text mb-5">{{ profile.main_type or '神秘人' }}</h1>
+
+            {% if profile.tags %}
+            <div class="flex flex-wrap gap-2 justify-center mb-6">
+                {% for t in profile.tags %}
+                <span class="px-3 py-1 rounded-full bg-white/10 text-xs text-gray-200">{{ t }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="border-t border-white/10 pt-5">
+                <p class="text-xs text-gray-500 mb-2">一句话</p>
+                <p class="text-lg text-white font-medium leading-relaxed">"{{ profile.one_liner or '' }}"</p>
+            </div>
+
+            {% if profile.main_type_reason %}
+            <p class="text-xs text-gray-400 italic mt-5 leading-relaxed">{{ profile.main_type_reason }}</p>
+            {% endif %}
+        </div>
+
+        <!-- 人类运行参数 -->
+        <div class="app-card-tight p-5 mb-6 fade-in">
+            <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2">
+                <span>⚙️</span><span>人类运行参数</span>
+            </h3>
+            <div class="space-y-4">
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl flex-shrink-0">⚡</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-baseline gap-2 mb-1 flex-wrap">
+                            <span class="text-xs text-gray-500">Token</span>
+                            <span class="text-sm font-semibold text-white">{{ s.token or '—' }}</span>
+                        </div>
+                        {% if s.token_status %}<p class="text-xs text-gray-400 leading-relaxed">{{ s.token_status }}</p>{% endif %}
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl flex-shrink-0">🛡</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-baseline gap-2 mb-1 flex-wrap">
+                            <span class="text-xs text-gray-500">防火墙</span>
+                            <span class="text-sm font-semibold text-white">{{ s.firewall or '—' }}</span>
+                        </div>
+                        {% if s.firewall_status %}<p class="text-xs text-gray-400 leading-relaxed">{{ s.firewall_status }}</p>{% endif %}
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl flex-shrink-0">🔋</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-baseline gap-2 mb-1 flex-wrap">
+                            <span class="text-xs text-gray-500">能量</span>
+                            <span class="text-sm font-semibold text-white">{{ s.energy or '—' }}</span>
+                        </div>
+                        {% if s.energy_status %}<p class="text-xs text-gray-400 leading-relaxed">{{ s.energy_status }}</p>{% endif %}
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl flex-shrink-0">🔑</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-baseline gap-2 mb-1 flex-wrap">
+                            <span class="text-xs text-gray-500">权限</span>
+                            <span class="text-sm font-semibold text-white">{{ s.permission or '—' }}</span>
+                        </div>
+                        {% if s.permission_status %}<p class="text-xs text-gray-400 leading-relaxed">{{ s.permission_status }}</p>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bug + 技能 -->
+        <div class="space-y-3 mb-6">
+            <div class="app-card-tight p-4 fade-in">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-lg">🐛</span>
+                    <span class="text-xs text-gray-500">隐藏 Bug</span>
+                </div>
+                <p class="text-sm text-white leading-relaxed">{{ profile.bug or '（暂无）' }}</p>
+            </div>
+            <div class="app-card-tight p-4 fade-in">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-lg">✨</span>
+                    <span class="text-xs text-gray-500">隐藏技能</span>
+                </div>
+                <p class="text-sm text-white leading-relaxed">{{ profile.skill or '（暂无）' }}</p>
+            </div>
+        </div>
+
+        <!-- ============ V1.1：朋友补充 ============ -->
+        <div class="mb-4 mt-8">
+            <span class="version-tag bg-yellow-500/20 text-yellow-300">V1.1 · 朋友观察</span>
+        </div>
+
+        <div class="app-card-tight p-5 mb-6 fade-in">
+            <h3 class="text-sm font-semibold text-gray-300 mb-2 flex items-center gap-2">
+                <span>👀</span><span>朋友眼中的你</span>
+            </h3>
+            <p class="text-xs text-gray-500 mb-4">
+                {% if total_reviews == 0 %}
+                还没有朋友补充。把你的分享链接发给朋友，让他们帮你"补全"。
+                {% else %}
+                已收到 <span class="text-purple-300 font-medium">{{ total_reviews }}</span> 位朋友的补充
+                {% endif %}
+            </p>
+
+            {% if total_reviews > 0 %}
+            <div class="space-y-3">
+                {% for r in reviews %}
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-sm font-medium text-white">👤 {{ r.review_user_name }}</span>
+                        {% if r.choice %}
+                        <span class="text-xs text-gray-500">
+                            {% if r.choice == 'accurate' %}🔥 AI 说中了
+                            {% elif r.choice == 'partial' %}🤔 差点东西
+                            {% else %}😂 AI 误会
+                            {% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% if r.comment %}
+                    <p class="text-sm text-gray-300 leading-relaxed">"{{ r.comment }}"</p>
+                    {% else %}
+                    <p class="text-xs text-gray-500 italic">（只选了标签）</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- 引导：分享 - V1.5opt 隐藏（入口在其他页面） -->
+            <div class="bg-purple-500/10 border border-purple-400/30 rounded-xl p-4 text-center v15-hide">
+                <p class="text-sm text-gray-300 mb-3">把分享链接发给朋友，让他们帮你补充</p>
+                <button
+                    onclick="copyShareUrl()"
+                    class="px-5 py-2 rounded-lg bg-purple-500/30 text-purple-100 text-sm font-medium hover:bg-purple-500/50">
+                    📋 复制分享链接
+                </button>
+                <p class="text-xs text-gray-500 mt-2">朋友打开后能看到你的说明书 + 给 TA 评价</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ============ V1.2：AI 融合总结（手动触发） ============ -->
+        {% if fusion %}
+        <div class="mb-4 mt-8">
+            <span class="version-tag bg-purple-500/20 text-purple-300">V1.2 · AI 重新理解</span>
+        </div>
+
+        <div class="hero-card rounded-3xl p-6 mb-6 fade-in" style="background: linear-gradient(160deg, rgba(139, 92, 246, 0.25) 0%, rgba(236, 72, 153, 0.18) 50%, rgba(255, 255, 255, 0.04) 100%);">
+            <p class="text-xs text-gray-300 mb-3 leading-relaxed">
+                <span class="text-purple-300 font-medium">AI 融合总结</span>（基于 {{ fusion.review_count }} 条朋友评价）
+            </p>
+
+            <!-- V1.8.2: 24px 核心人格一句话（最大字号，第一眼看到） -->
+            <h2 class="hero-title mb-4">{{ fusion.summary.v2_fusion_summary or '' }}</h2>
+
+            <!-- V1.8.2: 层次化三段：AI 发现 / 朋友验证 / 隐藏能力 -->
+            <div class="space-y-3 mt-4">
+                {% if fusion.summary.v1_ai_initial %}
+                <div class="bg-white/5 rounded-xl p-3">
+                    <p class="text-xs text-blue-300 mb-1">🤖 AI 发现</p>
+                    <p class="text-sm text-gray-200 leading-relaxed">{{ fusion.summary.v1_ai_initial }}</p>
+                </div>
+                {% endif %}
+                {% if fusion.summary.v1_friend_observations %}
+                <div class="bg-white/5 rounded-xl p-3">
+                    <p class="text-xs text-yellow-300 mb-1">👥 朋友验证</p>
+                    <p class="text-sm text-gray-200 leading-relaxed">{{ fusion.summary.v1_friend_observations }}</p>
+                </div>
+                {% endif %}
+                {% if fusion.summary.new_insight %}
+                <div class="bg-purple-500/15 border border-purple-400/30 rounded-xl p-3">
+                    <p class="text-xs text-purple-300 mb-1">💎 隐藏能力</p>
+                    <p class="text-sm text-gray-100 leading-relaxed italic">"{{ fusion.summary.new_insight }}"</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <p class="text-xs text-gray-500 mt-4 text-right">
+                最近更新：{{ fusion.updated_time | int }}
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- 操作区 -->
+        <div class="mt-6 space-y-3">
+            {% if total_reviews > 0 %}
+            <button
+                id="btn-fusion"
+                onclick="generateFusion()"
+                class="btn-primary btn-lg w-full">
+                🧠 {{ '重新生成' if fusion else '生成' }} AI 融合总结
+            </button>
+            <p class="text-xs text-gray-500 text-center">融合 AI 原始分析 + {{ total_reviews }} 条朋友观察</p>
+            {% endif %}
+
+            <!-- V1.7.1：召唤同类入口（AI 融合总结之后的下一步） -->
+            <div class="mt-6 pt-6 border-t border-white/5">
+                <div class="text-center mb-4">
+                    <p class="text-xs text-purple-300 tracking-widest mb-2">✨ 下一步</p>
+                    <h3 class="text-lg font-bold gradient-text mb-2">召唤同类</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        看看世界上有没有<br>与你运行频率接近的人
+                    </p>
+                </div>
+            </div>
+
+            <!-- V1.5opt: 隐藏（入口在其他页面，避免链路重复） -->
+            <a
+                href="/profile/{{ share_id }}"
+                target="_blank"
+                class="block w-full py-3 rounded-2xl bg-white/5 text-gray-300 text-sm text-center hover:bg-white/10 v15-hide">
+                👀 预览朋友看到的分享页
+            </a>
+
+            <!-- V1.5opt: 隐藏（入口在 identity.html 已有） -->
+            <a
+                href="/social-map/{{ report_id }}"
+                class="block w-full py-3 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-200 text-sm text-center border border-purple-400/30 hover:from-purple-500/30 hover:to-pink-500/30 v15-hide">
+                🌌 我的同类地图
+            </a>
+
+            <!-- V1.5opt: 隐藏（分享入口在 identity.html / share modal） -->
+            <button
+                onclick="copyShareUrl()"
+                class="w-full py-3 rounded-2xl bg-white/5 text-gray-400 text-sm hover:bg-white/10 v15-hide">
+                📋 复制分享链接（发给朋友）
+            </button>
+
+            <!-- V1.5opt: 隐藏（重新生成在首页） -->
+            <a
+                href="/"
+                class="block w-full py-3 rounded-2xl bg-white/5 text-gray-500 text-sm text-center hover:bg-white/10 v15-hide">
+                🔄 重新生成
+            </a>
+        </div>
+
+        <p class="text-center text-xs text-gray-600 mt-8 mb-4">
+            朋友说明书 v1.9 · 完整说明书
+        </p>
+        <div class="text-center mb-4">
+            <a href="/me/{{ report_id }}" class="text-xs text-purple-300 hover:text-purple-200">
+                ← 回到我的身份卡
+            </a>
+        </div>
+    </div>
+
+    <input id="share-url" type="hidden" value="{{ request.host_url }}profile/{{ share_id }}" />
+
+    <!-- V1.8.2 底部固定操作栏：随时召唤 -->
+    <div class="bottom-action-bar">
+        <a href="/summon/{{ report_id }}" class="btn-primary btn-lg w-full text-center" style="display: flex; align-items: center; justify-content: center; text-decoration: none;">
+            ✨ 召唤同类
+        </a>
+    </div>
+
+    <script>
+        const REPORT_ID = {{ report_id }};
+
+        function copyShareUrl() {
+            const url = document.getElementById('share-url').value;
+            const ta = document.createElement('textarea');
+            ta.value = url;
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast('✓ 分享链接已复制');
+            } catch (e) {
+                alert('复制失败：' + e.message);
+            }
+            document.body.removeChild(ta);
+        }
+
+        async function generateFusion() {
+            // V2.0.1：API Key 不再让用户填，由系统管理员在环境变量中配置
+            const btn = document.getElementById('btn-fusion');
+            btn.disabled = true;
+            const originalText = btn.textContent;
+            btn.textContent = '🧠 AI 融合中...（约 15-20 秒）';
+
+            try {
+                const resp = await fetch(`/api/fusion/${REPORT_ID}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                    // 不再传 api_key
+                });
+
+                const data = await resp.json();
+                if (!resp.ok || !data.ok) {
+                    // 友好错误：所有错误统一提示"AI 正在休息"
+                    throw new Error(data.error || 'AI 正在休息');
+                }
+
+                // 成功 → 刷新页面
+                showToast('✓ 融合总结已生成');
+                setTimeout(() => location.reload(), 800);
+            } catch (e) {
+                // 统一友好提示，不暴露技术细节
+                showToast('😴 AI 正在休息，请稍后再试');
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.textContent = msg;
+            toast.style.cssText = `
+                position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+                background: rgba(139, 92, 246, 0.95); color: white;
+                padding: 12px 24px; border-radius: 999px; font-size: 14px;
+                z-index: 1000; backdrop-filter: blur(10px);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+    </script>
+</body>
+</html>

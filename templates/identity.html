@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的身份卡 · 朋友说明书</title>
+    <link rel="stylesheet" href="/static/app.css?v=1">
+    <style>
+        .identity-section-title {
+            font-size: 11px;
+            color: rgba(196, 181, 253, 0.9);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin: 20px 0 10px 0;
+            padding-left: 4px;
+        }
+        .empty-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1.5px dashed rgba(196, 181, 253, 0.3);
+            border-radius: 24px;
+            padding: 48px 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .empty-card-emoji {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .empty-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        .empty-card-desc {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+        /* V1.9 身份卡正面 3 段（比之前更短） */
+        .identity-card-mini-row {
+            display: flex;
+            justify-content: space-around;
+            gap: 4px;
+            padding: 8px 4px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 10px;
+            margin-top: 12px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        /* V1.5opt：身份卡名言（最具传播力的一句话） */
+        .identity-card-quote {
+            margin-top: 14px;
+            padding: 10px 14px;
+            border-left: 3px solid rgba(196, 181, 253, 0.6);
+            background: rgba(139, 92, 246, 0.08);
+            border-radius: 8px;
+        }
+        .identity-card-quote-text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.92);
+            line-height: 1.6;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        {% if mode == 'empty' %}
+        <!-- ============================================================ -->
+        <!-- 空身份卡：引导用户开始生成（兜底）                             -->
+        <!-- ============================================================ -->
+        <div id="page-empty" class="fade-in">
+            <div class="text-center pt-6 mb-6">
+                <div class="text-4xl mb-2">📖</div>
+                <h1 class="text-2xl font-bold gradient-text mb-2">朋友说明书</h1>
+                <p class="text-xs text-gray-500">AI 时代的人类社交身份生成工具</p>
+            </div>
+
+            <div class="empty-card">
+                <div class="empty-card-emoji">🌙</div>
+                <div class="empty-card-title">还没有你的身份卡</div>
+                <div class="empty-card-desc">
+                    5 道题 · 约 2 分钟<br>
+                    生成一张属于你的数字身份卡
+                </div>
+                <a href="/" class="btn-primary btn-lg w-full text-center" style="display: flex; align-items: center; justify-content: center; text-decoration: none;">
+                    ✨ 开始生成我的身份卡
+                </a>
+            </div>
+
+            <p class="text-xs text-gray-500 text-center mt-6 mb-4">
+                已经生成过？<br>
+                <a href="javascript:checkLastCard()" class="text-purple-300 hover:text-purple-200">检查浏览器 localStorage</a>
+            </p>
+        </div>
+
+        <script>
+        (function() {
+            try {
+                const lastId = localStorage.getItem('friend_manual_last_report_id');
+                if (lastId) {
+                    setTimeout(() => { window.location.href = '/me/' + lastId; }, 200);
+                }
+            } catch (e) {}
+        })();
+        function checkLastCard() {
+            try {
+                const lastId = localStorage.getItem('friend_manual_last_report_id');
+                if (lastId) window.location.href = '/me/' + lastId;
+                else alert('没找到 localStorage 记录。请直接去首页生成你的身份卡。');
+            } catch (e) {
+                alert('localStorage 不可用：' + e.message);
+            }
+        }
+        </script>
+
+        {% else %}
+        <!-- ============================================================ -->
+        <!-- V1.9 身份卡中心：顶部 3 tab + 身份卡                          -->
+        <!-- ============================================================ -->
+        {% set p = profile or {} %}
+        {% set s = p.stats or {} %}
+
+        <!-- 顶部 3 tab 导航 -->
+        <div class="tab-bar mt-2 mb-5 fade-in">
+            <a class="tab-item active" href="/me/{{ report_id }}">
+                <span class="tab-item-icon">🪪</span><span>我的身份</span>
+            </a>
+            <a class="tab-item" href="/reviews/{{ report_id }}">
+                <span class="tab-item-icon">👀</span><span>朋友评价</span>
+            </a>
+            <a class="tab-item" href="/summon/{{ report_id }}">
+                <span class="tab-item-icon">✨</span><span>召唤同类</span>
+            </a>
+        </div>
+
+        <!-- 身份卡 3D 翻转 -->
+        <div class="identity-card" id="identity-card" onclick="flipCard()">
+            <div class="identity-card-inner" id="identity-card-inner">
+                <!-- 正面：人格名 + 标签 + 人格名言（V1.5opt 改造） -->
+                <div class="identity-card-front">
+                    <div class="identity-card-emoji" id="card-emoji">🌙</div>
+                    <div class="identity-card-name" id="card-name" data-raw="{{ p.main_type or '神秘人' }}">{{ p.main_type or '神秘人' }}</div>
+                    {% if p.tags %}
+                    <div class="identity-card-tags">
+                        {% for t in p.tags[:3] %}
+                        <span class="identity-card-tag">{{ t }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <!-- V1.5opt：人格名言（最具传播力的一句话） -->
+                    {% set persona_quote = (p.share_quotes[0] if p.share_quotes and p.share_quotes|length > 0 else (p.share_quote or p.one_liner or '')) %}
+                    {% if persona_quote %}
+                    <div class="identity-card-quote">
+                        <p class="identity-card-quote-text">"{{ persona_quote }}"</p>
+                    </div>
+                    {% endif %}
+                    <div class="identity-card-hint">点击翻转</div>
+                </div>
+
+                <!-- 背面：你的隐藏模式 + 3 段（V1.5opt 改名） -->
+                <div class="identity-card-back">
+                    <p class="text-xs text-purple-300 tracking-widest mb-2" style="opacity: 0.85;">你的隐藏模式</p>
+                    <div class="identity-card-back-section">
+                        <div class="identity-card-back-label">🧠 你的行为模式</div>
+                        <div class="identity-card-back-text">{{ s.energy_status or '（暂无）' }}</div>
+                    </div>
+                    <div class="identity-card-back-section">
+                        <div class="identity-card-back-label">⚡ 你的核心优势</div>
+                        <div class="identity-card-back-text">{{ p.skill or '（暂无）' }}</div>
+                    </div>
+                    <div class="identity-card-back-section">
+                        <div class="identity-card-back-label">🌱 你的隐藏需求</div>
+                        <div class="identity-card-back-text">{{ p.bug or '（暂无）' }}</div>
+                    </div>
+                    <div class="identity-card-hint">点击翻回</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 翻转 + 分享 -->
+        <div class="flex justify-center gap-3 mb-5">
+            <button class="identity-flip-btn" onclick="event.stopPropagation(); flipCard();">🔄 翻转</button>
+            <button class="identity-flip-btn" onclick="event.stopPropagation(); copyShareUrl();">📤 分享</button>
+        </div>
+
+        <!-- V1.5opt：3 参数从身份卡挪到这里（独立行） -->
+        <div class="identity-card-mini-row mb-5">
+            <div class="identity-card-param">
+                <div class="identity-card-param-label">Token</div>
+                <div class="identity-card-param-value">{{ s.token or '—' }}</div>
+            </div>
+            <div class="identity-card-param">
+                <div class="identity-card-param-label">能量</div>
+                <div class="identity-card-param-value">{{ s.energy or '—' }}</div>
+            </div>
+            <div class="identity-card-param">
+                <div class="identity-card-param-label">防火墙</div>
+                <div class="identity-card-param-value">{{ s.firewall or '—' }}</div>
+            </div>
+        </div>
+
+        <!-- 入口区 -->
+        <p class="identity-section-title">▎ 长期沉淀</p>
+
+        <a href="/manual/{{ report_id }}" class="entry-card">
+            <div class="entry-card-icon">📖</div>
+            <div class="entry-card-content">
+                <div class="entry-card-title">完整说明书</div>
+                <div class="entry-card-desc">人格解析 · 能量模式 · 社交模式 · 使用说明</div>
+            </div>
+            <div class="entry-card-arrow">›</div>
+        </a>
+
+        <a href="/reviews/{{ report_id }}" class="entry-card">
+            <div class="entry-card-icon">👀</div>
+            <div class="entry-card-content">
+                <div class="entry-card-title">朋友评价</div>
+                <div class="entry-card-desc">
+                    {% if reviews_count > 0 %}
+                    已收到 {{ reviews_count }} 位朋友的补充
+                    {% else %}
+                    把分享链接发给朋友
+                    {% endif %}
+                </div>
+            </div>
+            <div class="entry-card-arrow">›</div>
+        </a>
+
+        {% if fusion %}
+        <a href="/manual/{{ report_id }}#fusion" class="entry-card" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(236, 72, 153, 0.08) 100%); border-color: rgba(196, 181, 253, 0.3);">
+            <div class="entry-card-icon">🧠</div>
+            <div class="entry-card-content">
+                <div class="entry-card-title">AI 重新理解我</div>
+                <div class="entry-card-desc">基于 {{ fusion.review_count }} 条朋友评价 · 持续更新中</div>
+            </div>
+            <div class="entry-card-arrow">›</div>
+        </a>
+        {% endif %}
+
+        <a href="/summon/{{ report_id }}" class="entry-card">
+            <div class="entry-card-icon">✨</div>
+            <div class="entry-card-content">
+                <div class="entry-card-title">召唤同类</div>
+                <div class="entry-card-desc">
+                    {% if matches_count > 0 %}
+                    已发现 {{ matches_count }} 个潜在同类
+                    {% else %}
+                    寻找与你运行频率接近的人
+                    {% endif %}
+                </div>
+            </div>
+            <div class="entry-card-arrow">›</div>
+        </a>
+
+        {% if matches_count > 0 %}
+        <a href="/social-map/{{ report_id }}" class="entry-card">
+            <div class="entry-card-icon">🌌</div>
+            <div class="entry-card-content">
+                <div class="entry-card-title">我的同类地图</div>
+                <div class="entry-card-desc">{{ matches_count }} 个已发现同类 · 长期社交资产</div>
+            </div>
+            <div class="entry-card-arrow">›</div>
+        </a>
+        {% endif %}
+
+        <p class="text-center text-xs text-gray-600 mt-8 mb-4">
+            朋友说明书 v1.9 · 身份卡
+        </p>
+        {% endif %}
+
+    </div>
+
+    {% if mode == 'card' %}
+    <input id="share-url" type="hidden" value="{{ request.host_url }}profile/{{ share_id }}" />
+
+    <script>
+        const REPORT_ID = {{ report_id }};
+        const SHARE_ID = "{{ share_id }}";
+
+        try { localStorage.setItem('friend_manual_last_report_id', REPORT_ID); } catch (e) {}
+
+        function flipCard() {
+            const card = document.getElementById('identity-card');
+            if (card) card.classList.toggle('flipped');
+        }
+
+        // 提取 emoji
+        (function() {
+            const nameEl = document.getElementById('card-name');
+            const emojiEl = document.getElementById('card-emoji');
+            if (!nameEl || !emojiEl) return;
+            const text = (nameEl.dataset.raw || nameEl.textContent).trim();
+            const match = text.match(/^([\u{1F300}-\u{1F9FF}\u{2600}-\u{27BF}]+)\s*(.*)/u);
+            if (match) {
+                emojiEl.textContent = match[1];
+                nameEl.textContent = match[2] || '神秘人';
+            } else {
+                nameEl.textContent = text;
+            }
+        })();
+
+        function copyShareUrl() {
+            const url = document.getElementById('share-url').value;
+            const ta = document.createElement('textarea');
+            ta.value = url;
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast('✓ 分享链接已复制');
+            } catch (e) { alert('复制失败：' + e.message); }
+            document.body.removeChild(ta);
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.textContent = msg;
+            toast.style.cssText = 'position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: rgba(139, 92, 246, 0.95); color: white; padding: 12px 24px; border-radius: 999px; font-size: 14px; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.3);';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+    </script>
+    {% endif %}
+</body>
+</html>

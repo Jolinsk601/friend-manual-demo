@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>朋友说明书 AI · 人类使用说明书生成器</title>
+    <link rel="stylesheet" href="/static/app.css?v=1">
+    <style>
+        /* V1.5: 优先隐藏不删除（需要时把这条 CSS 删掉即可恢复） */
+        .v15-hide {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="app-container">
+        <!-- ============ 首页 ============ -->
+        <div id="page-home" class="fade-in">
+            <div class="text-center mb-8 pt-6">
+                <div class="text-5xl mb-3">📖</div>
+                <h1 class="text-3xl font-bold mb-2 gradient-text">朋友说明书</h1>
+                <p class="text-gray-400 text-sm mb-1">AI 时代的人类社交身份生成工具</p>
+                <p class="text-gray-500 text-xs">5 道题 · 一张属于你的卡</p>
+            </div>
+
+            <div class="app-card">
+                <p class="text-gray-300 leading-relaxed text-sm">
+                    每个人都有一套隐藏的人类运行参数——<br>
+                    社交 Token、防火墙、能量模式、好友权限……<br><br>
+                    <span class="text-white font-medium">这不是人格测试，是一份新的自我介绍方式。</span>
+                </p>
+            </div>
+
+            <!-- V1.8.1：不再需要用户输入 API Key，AI_MODE 环境变量自动切换 mock/deepseek -->
+            <div class="app-card text-center">
+                <p class="text-xs text-gray-400">
+                    🎮 当前为 Mock 模式 · 无需 API Key · 完整体验全流程
+                </p>
+            </div>
+
+            <button
+                id="btn-start"
+                onclick="startInterview()"
+                class="btn-primary btn-lg w-full glow">
+                ✨ 生成我的朋友说明书
+            </button>
+
+            <div class="mt-8 text-center">
+                <p class="text-xs text-gray-600">
+                    5 道题 · 约 2 分钟 · 一张属于你的卡
+                </p>
+            </div>
+        </div>
+
+        <!-- ============ 出题 Loading ============ -->
+        <div id="page-loading-questions" class="hidden">
+            <div class="text-center pt-20 fade-in">
+                <div class="text-6xl mb-6 animate-pulse">🎲</div>
+                <h2 class="text-xl font-bold mb-3">AI 正在出题...</h2>
+                <p class="text-gray-400 text-sm mb-6">（每道题都有专属毒舌选项，约需 10-15 秒）</p>
+                <div class="flex justify-center gap-2">
+                    <div class="w-2 h-2 bg-purple-400 rounded-full typing-dot"></div>
+                    <div class="w-2 h-2 bg-purple-400 rounded-full typing-dot"></div>
+                    <div class="w-2 h-2 bg-purple-400 rounded-full typing-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ 访谈页 ============ -->
+        <div id="page-interview" class="hidden">
+            <!-- 进度条 -->
+            <div class="mb-6">
+                <div class="flex justify-between text-xs text-gray-400 mb-2">
+                    <span id="progress-text">问题 1/5</span>
+                    <span id="progress-percent">20%</span>
+                </div>
+                <div class="h-1 bg-white/10 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500" style="width: 20%"></div>
+                </div>
+            </div>
+
+            <!-- 当前问题 -->
+            <div id="question-area" class="fade-in">
+                <!-- 动态生成 -->
+            </div>
+
+            <!-- 朋友 AI 反馈气泡（用户答题后显示） -->
+            <div id="feedback-area" class="hidden mt-4">
+                <div class="flex items-start gap-2 fade-in-up">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-sm flex-shrink-0">朋友</div>
+                    <div class="feedback-bubble rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
+                        <p class="text-xs text-purple-300 mb-1">朋友 AI</p>
+                        <div id="feedback-text" class="text-sm text-white"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 自定义输入区（默认隐藏） -->
+            <div id="custom-input-area" class="hidden app-card-tight p-4 mt-4 custom-input-area fade-in">
+                <p class="text-xs text-gray-500 mb-2">💬 自己说两句</p>
+                <textarea
+                    id="custom-input"
+                    rows="3"
+                    placeholder="想怎么答就怎么答..."
+                    class="w-full bg-transparent text-white placeholder-gray-500 text-sm resize-none"
+                ></textarea>
+                <div class="flex justify-end gap-2 mt-3">
+                    <button
+                        onclick="cancelCustomInput()"
+                        class="px-4 py-2 rounded-lg text-gray-400 text-xs hover:text-white">
+                        取消
+                    </button>
+                    <button
+                        onclick="submitCustomAnswer()"
+                        class="btn-primary px-5 py-2 rounded-lg text-white text-xs font-medium">
+                        确认 →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ 说明书生成 Loading ============ -->
+        <div id="page-loading-result" class="hidden">
+            <div class="text-center pt-20 fade-in">
+                <div class="text-7xl mb-6 animate-pulse">🔮</div>
+                <h2 class="text-2xl font-bold mb-3">AI 正在扫描你的灵魂参数...</h2>
+                <p class="text-gray-400 text-sm mb-6">（约需 10-20 秒）</p>
+                <div class="app-card-tight p-5 max-w-xs mx-auto">
+                    <div id="loading-text" class="text-sm text-gray-300">正在分析你的 5 个回答...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ 结果页（V0.2 新结构） ============ -->
+        <div id="page-result" class="hidden fade-in">
+            <div id="result-content">
+                <!-- 动态填充 -->
+            </div>
+
+            <div class="mt-6 space-y-3">
+                <!-- V1.4：分享主 CTA -->
+                <button
+                    id="btn-share"
+                    onclick="shareProfile()"
+                    class="w-full py-3.5 rounded-2xl btn-primary text-white text-sm font-semibold">
+                    📤 分享我的朋友说明书
+                </button>
+
+                <!-- V2.0：查看我的完整报告（持久化入口）- V1.5 隐藏 -->
+                <a
+                    id="link-my-report"
+                    href="#"
+                    onclick="event.preventDefault(); openMyReport();"
+                    class="hidden w-full py-3 rounded-2xl bg-white/5 text-gray-300 text-sm text-center hover:bg-white/10 block v15-hide">
+                    📖 查看我的完整报告
+                </a>
+
+                <!-- V1.7：召唤同类（基于运行参数匹配 Top 3 同类） -->
+                <a
+                    id="link-summon"
+                    href="#"
+                    onclick="event.preventDefault(); openSummon();"
+                    class="hidden w-full py-3 rounded-2xl bg-purple-500/20 text-purple-200 text-sm text-center hover:bg-purple-500/30 block border border-purple-400/30">
+                    ✨ 寻找契合的人
+                    <span class="text-xs text-purple-300 ml-1">（找和你频率契合的人）</span>
+                </a>
+
+                <!-- V1.3：4 种观察视角（换种看法）- V1.5 隐藏 -->
+                <p class="text-xs text-gray-500 text-center mb-2 v15-hide">— 换种看法？—</p>
+                <div class="grid grid-cols-2 gap-2 v15-hide">
+                    <button
+                        onclick="regenerate('close_friend')"
+                        class="perspective-btn py-3 rounded-2xl text-xs text-white"
+                        data-perspective="close_friend">
+                        🤝 老朋友
+                    </button>
+                    <button
+                        onclick="regenerate('bestie')"
+                        class="perspective-btn py-3 rounded-2xl text-xs text-white"
+                        data-perspective="bestie">
+                        👭 闺蜜毒舌
+                    </button>
+                    <button
+                        onclick="regenerate('first_meet')"
+                        class="perspective-btn py-3 rounded-2xl text-xs text-white"
+                        data-perspective="first_meet">
+                        👀 初次见面
+                    </button>
+                    <button
+                        onclick="regenerate('ai_analyst')"
+                        class="perspective-btn py-3 rounded-2xl text-xs text-white"
+                        data-perspective="ai_analyst">
+                        🤖 AI 冷静
+                    </button>
+                </div>
+
+                <button
+                    onclick="restart()"
+                    class="w-full py-3 mt-2 rounded-2xl bg-white/5 text-gray-400 text-sm hover:bg-white/10">
+                    🔄 重新开始
+                </button>
+            </div>
+
+            <p class="text-center text-xs text-gray-600 mt-8">
+                朋友说明书 v1.4 · Demo
+            </p>
+        </div>
+
+        <!-- ============ V1.4 分享弹窗 ============ -->
+        <div id="share-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);">
+            <div class="glass rounded-3xl p-6 max-w-md w-full fade-in">
+                <p class="text-xs text-gray-400 mb-2 tracking-widest text-center">📤 你的朋友说明书</p>
+                <h2 class="text-xl font-bold gradient-text text-center mb-4">分享给朋友看看？</h2>
+
+                <!-- Loading -->
+                <div id="share-loading" class="text-center py-6">
+                    <div class="text-3xl mb-2 animate-pulse">⏳</div>
+                    <p class="text-sm text-gray-400">正在生成专属链接...</p>
+                </div>
+
+                <!-- 成功状态 -->
+                <div id="share-success" class="hidden">
+                    <div class="bg-black/30 border border-white/10 rounded-xl p-3 mb-4">
+                        <p class="text-xs text-gray-500 mb-1">专属链接</p>
+                        <div class="flex items-center gap-2">
+                            <input
+                                id="share-url-input"
+                                type="text"
+                                readonly
+                                class="flex-1 bg-transparent text-white text-sm font-mono outline-none"
+                            />
+                            <button
+                                onclick="copyShareUrl()"
+                                class="px-3 py-1.5 rounded-lg bg-purple-500/30 text-purple-200 text-xs hover:bg-purple-500/50">
+                                复制
+                            </button>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-gray-500 text-center mb-4">
+                        朋友打开链接就能看到你的说明书 ✨
+                    </p>
+
+                    <div class="space-y-2">
+                        <!-- V1.5: 隐藏预览效果（删 / 隐藏由 CSS 控制，方便回滚） -->
+                        <a
+                            id="share-link-preview"
+                            href="#"
+                            target="_blank"
+                            class="block w-full py-2.5 rounded-xl bg-white/10 text-white text-sm text-center hover:bg-white/15 v15-hide">
+                            👀 预览效果
+                        </a>
+                        <!-- V1.5: 加随机金句文案 -->
+                        <p
+                            id="share-random-quote"
+                            class="text-xs text-purple-200 text-center py-3 px-2 italic">
+                            正在为你准备一句分享文案...
+                        </p>
+                        <button
+                            onclick="closeShareModal()"
+                            class="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-sm hover:bg-white/10">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 失败状态 -->
+                <div id="share-error" class="hidden text-center py-4">
+                    <div class="text-3xl mb-2">😢</div>
+                    <p id="share-error-msg" class="text-sm text-red-300 mb-4"></p>
+                    <button
+                        onclick="closeShareModal()"
+                        class="px-6 py-2 rounded-xl bg-white/10 text-white text-sm">
+                        关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 状态
+        // ============================================================
+        const state = {
+            // V1.8.1：移除 apiKey，前端不再存 Key
+            questions: [],     // 5 道题，每题每选项带 feedback
+            answers: [],       // [{emoji, text, dim, feedback}]
+            currentStep: 0,
+            result: null,
+            currentPerspective: 'close_friend',  // V1.3 当前视角
+            shareId: null,     // V1.4 分享 ID
+            shareUrl: null,    // V1.4 完整分享 URL
+            reportId: null,    // V2.0 报告 ID（用户自己的）
+            reportUrl: null    // V2.0 完整报告 URL
+        };
+
+        const LOADING_TEXTS = [
+            '正在分析你的 5 个回答...',
+            '正在匹配 15 种主人格...',
+            '正在毒舌翻译你的灵魂...',
+            '正在生成反差感 Bug...',
+            '正在调校毒舌剂量...',
+            '即将完成...'
+        ];
+
+        // ============================================================
+        // 启动访谈
+        // ============================================================
+        async function startInterview() {
+            // V1.8.1：不再需要前端 API Key
+            state.answers = [];
+            state.currentStep = 0;
+
+            showPage('loading-questions');
+
+            try {
+                const resp = await fetch('/api/start-interview', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+
+                const contentType = resp.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    const text = await resp.text();
+                    throw new Error(`HTTP ${resp.status} - 返回非 JSON\nURL: /api/start-interview\nBody: ${text.substring(0, 300)}\n（如果是 HTML，可能是后端崩了或路由不存在）`);
+                }
+
+                const data = await resp.json();
+                if (!resp.ok || !data.ok) {
+                    // V1.5: 限流友好提示
+                    if (data.rate_limited) {
+                        showToast(data.error || '今天的探索次数已经用完啦');
+                        showPage('home');
+                        return;
+                    }
+                    alert('出题失败：' + (data.error || '未知错误') + '\n\n' + (data.detail || ''));
+                    showPage('home');
+                    return;
+                }
+
+                state.questions = data.questions;
+                showPage('interview');
+                renderQuestion();
+            } catch (e) {
+                alert('出题失败：' + e.message + '\n\n（如果是 HTML 响应，请按 Ctrl+Shift+R 强制刷新浏览器清缓存）');
+                showPage('home');
+            }
+        }
+
+        // ============================================================
+        // 渲染当前问题
+        // ============================================================
+        function renderQuestion() {
+            const q = state.questions[state.currentStep];
+            const step = state.currentStep + 1;
+
+            // 进度
+            document.getElementById('progress-text').textContent = `问题 ${step}/5 · ${q.dim || ''}`;
+            document.getElementById('progress-percent').textContent = `${step * 20}%`;
+            document.getElementById('progress-bar').style.width = `${step * 20}%`;
+
+            // 反馈区隐藏
+            document.getElementById('feedback-area').classList.add('hidden');
+            // 自定义输入区隐藏
+            document.getElementById('custom-input-area').classList.add('hidden');
+
+            // 渲染问题 + 选项
+            const html = `
+                <div class="fade-in">
+                    <div class="mb-6">
+                        <p class="text-xs text-gray-500 mb-2">朋友 AI</p>
+                        <h2 class="text-xl text-white font-semibold leading-relaxed">${escapeHtml(q.question)}</h2>
+                    </div>
+
+                    <div class="space-y-3" id="options-list">
+                        ${q.options.map((opt, i) => `
+                            <button
+                                onclick="selectOption(${i})"
+                                class="option-btn w-full text-left px-5 py-4 rounded-2xl flex items-center gap-3 text-white text-sm">
+                                <span class="text-2xl flex-shrink-0">${escapeHtml(opt.emoji || '•')}</span>
+                                <span class="flex-1">${escapeHtml(opt.text)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <div class="mt-6 text-center">
+                        <button
+                            onclick="showCustomInput()"
+                            class="text-sm text-gray-500 hover:text-purple-400 transition">
+                            想自己说两句，不选选项 →
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('question-area').innerHTML = html;
+        }
+
+        // ============================================================
+        // 选项交互（带反馈气泡）
+        // ============================================================
+        function selectOption(idx) {
+            const q = state.questions[state.currentStep];
+            const opt = q.options[idx];
+
+            // 高亮选项 + 锁定其他
+            const buttons = document.querySelectorAll('#options-list .option-btn');
+            buttons.forEach((btn, i) => {
+                if (i === idx) btn.classList.add('selected');
+                else btn.style.pointerEvents = 'none';
+            });
+
+            // 显示反馈气泡
+            const feedbackArea = document.getElementById('feedback-area');
+            const feedbackText = document.getElementById('feedback-text');
+            feedbackText.textContent = opt.feedback || '记下了。';
+            feedbackArea.classList.remove('hidden');
+
+            // 保存答案
+            state.answers.push({
+                emoji: opt.emoji || '',
+                text: opt.text,
+                dim: q.dim || '',
+                feedback: opt.feedback || ''
+            });
+
+            // 1.5 秒后进入下一题（让用户看清反馈）
+            setTimeout(advance, 1800);
+        }
+
+        function showCustomInput() {
+            document.getElementById('custom-input-area').classList.remove('hidden');
+            document.getElementById('custom-input').focus();
+            // 禁用选项
+            document.querySelectorAll('#options-list .option-btn').forEach(btn => {
+                btn.style.opacity = '0.4';
+                btn.style.pointerEvents = 'none';
+            });
+        }
+
+        function cancelCustomInput() {
+            document.getElementById('custom-input-area').classList.add('hidden');
+            document.getElementById('custom-input').value = '';
+            // 恢复选项
+            document.querySelectorAll('#options-list .option-btn').forEach(btn => {
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            });
+        }
+
+        function submitCustomAnswer() {
+            const text = document.getElementById('custom-input').value.trim();
+            if (!text) {
+                alert('写点东西吧～');
+                return;
+            }
+            const q = state.questions[state.currentStep];
+
+            // 显示通用反馈
+            const feedbackArea = document.getElementById('feedback-area');
+            const feedbackText = document.getElementById('feedback-text');
+            feedbackText.textContent = '记下了，你的版本。';
+            feedbackArea.classList.remove('hidden');
+
+            state.answers.push({
+                emoji: '✍️',
+                text: text,
+                dim: q.dim || '',
+                feedback: '记下了，你的版本。'
+            });
+
+            setTimeout(advance, 1200);
+        }
+
+        function advance() {
+            if (state.currentStep >= 4) {
+                startGeneration();
+            } else {
+                state.currentStep++;
+                renderQuestion();
+            }
+        }
+
+        // ============================================================
+        // 生成说明书
+        // ============================================================
+        async function startGeneration() {
+            showPage('loading-result');
+
+            let i = 0;
+            const interval = setInterval(() => {
+                document.getElementById('loading-text').textContent = LOADING_TEXTS[i % LOADING_TEXTS.length];
+                i++;
+            }, 3000);
+
+            try {
+                const resp = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        answers: state.answers
+                    })
+                });
+
+                clearInterval(interval);
+
+                const contentType = resp.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    const text = await resp.text();
+                    throw new Error(`HTTP ${resp.status} - 返回非 JSON\nURL: /api/generate\nBody 前 300 字: ${text.substring(0, 300)}\n（如果是 HTML，说明后端崩了；如果提示"应该是对象"，请 Ctrl+Shift+R 强制刷新浏览器）`);
+                }
+
+                const data = await resp.json();
+                if (!resp.ok || !data.ok) {
+                    // V1.5: 限流友好提示（不弹 alert，直接 toast）
+                    if (data.rate_limited) {
+                        showToast(data.error || '今天的探索次数已经用完啦');
+                        showPage('home');
+                        return;
+                    }
+                    alert('生成失败：' + (data.error || '未知错误') + '\n\n' + (data.detail || ''));
+                    showPage('home');
+                    return;
+                }
+
+                state.result = data.instruction;
+                renderResult(data.instruction);
+
+                // V1.7.2：自动 save 一次，让 reportId 立刻可用（用户不分享也能召唤）
+                try {
+                    const saveResp = await fetch('/api/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            profile: data.instruction,
+                            answers: state.answers,
+                            perspective: 'close_friend'
+                        })
+                    });
+                    const saveData = await saveResp.json();
+                    if (saveData.ok) {
+                        state.reportId = saveData.report_id;
+                        state.shareId = saveData.share_id;
+                        state.reportUrl = window.location.origin + saveData.report_url;
+                        // 显示"召唤同类"入口
+                        const summonLink = document.getElementById('link-summon');
+                        if (summonLink) {
+                            summonLink.href = `${window.location.origin}/summon/${saveData.report_id}`;
+                            summonLink.classList.remove('hidden');
+                        }
+                        // 显示"查看我的报告"链接
+                        const reportLink = document.getElementById('link-my-report');
+                        if (reportLink) {
+                            reportLink.href = state.reportUrl;
+                            reportLink.classList.remove('hidden');
+                        }
+                    }
+                } catch (e) {
+                    // save 失败不影响主流程
+                    console.warn('Auto-save failed:', e);
+                }
+
+                showPage('result');
+            } catch (e) {
+                clearInterval(interval);
+                alert('生成失败：' + e.message);
+                showPage('home');
+            }
+        }
+
+        // ============================================================
+        // ============================================================
+        // 渲染结果（V1.3：4 视角 + 3 条候选金句）
+        // ============================================================
+        function renderResult(r) {
+            const s = r.stats || {};
+            const ins = r.instruction || {};
+            const ov = r.others_view || {};
+            // V1.3 优先用 share_quotes 数组；老字段 share_quote/share_sentence 兜底
+            const shareQuoteList = r.share_quotes || [];
+            const shareQuote = shareQuoteList[0] || r.share_quote || r.share_sentence || '';
+
+            const html = `
+                <!-- 第一层：爆点卡（主角格 + one_liner） -->
+                <div class="hero-card rounded-3xl p-7 text-center glow mb-5 fade-in-up">
+                    <p class="text-xs text-gray-400 mb-2 tracking-widest">你的隐藏身份</p>
+                    <h2 class="text-3xl font-bold gradient-text mb-5">${escapeHtml(r.main_type)}</h2>
+
+                    <div class="flex flex-wrap gap-2 justify-center mb-6">
+                        ${r.tags.map(t => `<span class="px-3 py-1 rounded-full bg-white/10 text-xs text-gray-200">${escapeHtml(t)}</span>`).join('')}
+                    </div>
+
+                    <div class="border-t border-white/10 pt-5">
+                        <p class="text-xs text-gray-500 mb-2">一句话</p>
+                        <p class="text-lg text-white font-medium leading-relaxed">"${escapeHtml(r.one_liner || '')}"</p>
+                    </div>
+
+                    ${r.main_type_reason ? `
+                        <p class="text-xs text-gray-400 italic mt-5 leading-relaxed">${escapeHtml(r.main_type_reason)}</p>
+                    ` : ''}
+                </div>
+
+                <!-- 第二层：人类运行参数（每个带状态） -->
+                <div class="app-card-tight p-5 mb-5 fade-in-up">
+                    <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2">
+                        <span>⚙️</span><span>人类运行参数</span>
+                    </h3>
+                    <div class="space-y-4">
+                        ${renderStat('⚡', 'Token', s.token, s.token_status)}
+                        ${renderStat('🛡', '防火墙', s.firewall, s.firewall_status)}
+                        ${renderStat('🔋', '能量', s.energy, s.energy_status)}
+                        ${renderStat('🔑', '权限', s.permission, s.permission_status)}
+                    </div>
+                </div>
+
+                <!-- 第三层：Bug + 技能（反差感） -->
+                <div class="space-y-3 mb-5">
+                    <div class="app-card-tight p-4 fade-in-up">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-lg">🐛</span>
+                            <span class="text-xs text-gray-500">隐藏 Bug</span>
+                        </div>
+                        <p class="text-sm text-white leading-relaxed">${escapeHtml(r.bug)}</p>
+                    </div>
+                    <div class="app-card-tight p-4 fade-in-up">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-lg">✨</span>
+                            <span class="text-xs text-gray-500">隐藏技能</span>
+                        </div>
+                        <p class="text-sm text-white leading-relaxed">${escapeHtml(r.skill)}</p>
+                    </div>
+                </div>
+
+                <!-- 朋友使用说明（4 段，更狠的文案） -->
+                <div class="app-card-tight p-5 mb-5 fade-in-up">
+                    <h3 class="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
+                        <span>📖</span><span>朋友使用说明</span>
+                    </h3>
+                    <div class="space-y-3">
+                        ${renderIns('🚀 开启', ins.start)}
+                        ${renderIns('💬 互动', ins.interact)}
+                        ${renderIns('🔌 充电', ins.charging)}
+                        ${renderIns('⛔ 禁忌', ins.forbidden)}
+                    </div>
+                </div>
+
+                <!-- 第四层：别人眼中的你（V1.3 新增，反差感 3 段） -->
+                ${(ov.first_impression || ov.familiar || ov.miss_you) ? `
+                <div class="app-card-tight p-5 mb-5 fade-in-up">
+                    <h3 class="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
+                        <span>👀</span><span>别人眼中的你</span>
+                    </h3>
+                    <div class="space-y-3">
+                        ${ov.first_impression ? renderOthersView('第一次见你', ov.first_impression) : ''}
+                        ${ov.familiar ? renderOthersView('熟了以后', ov.familiar) : ''}
+                        ${ov.miss_you ? renderOthersView('离开以后', ov.miss_you) : ''}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- 分享金句（V1.5opt：只展示 1 句最强金句 + 一键复制） -->
+                <div class="hero-card rounded-3xl p-6 fade-in-up" style="background: linear-gradient(135deg, rgba(139,92,246,0.18) 0%, rgba(236,72,153,0.18) 100%);">
+                    <p class="text-xs text-gray-400 mb-4 tracking-widest text-center">✦ 朋友圈分享金句</p>
+                    <p class="text-base text-white leading-relaxed text-center italic mb-4">
+                        "${escapeHtml(shareQuote || '暂无')}"
+                    </p>
+                    <button
+                        onclick="copyShareSentence(0)"
+                        class="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-purple-200 text-sm transition">
+                        📋 复制到剪贴板
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('result-content').innerHTML = html;
+
+            // V1.3：高亮当前视角按钮
+            highlightCurrentPerspective();
+        }
+
+        function highlightCurrentPerspective() {
+            const buttons = document.querySelectorAll('.perspective-btn');
+            buttons.forEach(b => {
+                if (b.dataset.perspective === state.currentPerspective) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+        }
+
+        function renderOthersView(label, text) {
+            return `
+                <div class="flex items-start gap-3">
+                    <span class="text-xs text-gray-500 min-w-[80px] mt-0.5">${escapeHtml(label)}</span>
+                    <p class="text-sm text-white flex-1 leading-relaxed">${escapeHtml(text)}</p>
+                </div>
+            `;
+        }
+
+        function renderStat(icon, label, value, status) {
+            return `
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl flex-shrink-0">${icon}</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-baseline gap-2 mb-1 flex-wrap">
+                            <span class="text-xs text-gray-500">${label}</span>
+                            <span class="text-sm font-semibold text-white">${escapeHtml(value || '—')}</span>
+                        </div>
+                        ${status ? `<p class="text-xs text-gray-400 leading-relaxed">${escapeHtml(status)}</p>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderIns(label, text) {
+            return `
+                <div class="flex items-start gap-3">
+                    <span class="text-xs text-gray-500 min-w-[64px] mt-0.5">${label}</span>
+                    <p class="text-sm text-white flex-1 leading-relaxed">${escapeHtml(text || '（暂无）')}</p>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // 工具
+        // ============================================================
+        function showPage(name) {
+            ['home', 'loading-questions', 'interview', 'loading-result', 'result'].forEach(p => {
+                const el = document.getElementById(`page-${p}`);
+                if (el) {
+                    el.classList.add('hidden');
+                    // 兜底：同时用 inline style 强制隐藏
+                    el.style.display = 'none';
+                }
+            });
+            const target = document.getElementById(`page-${name}`);
+            if (target) {
+                target.classList.remove('hidden');
+                target.style.display = '';
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function copyShareSentence(idx) {
+            if (!state.result) return;
+            // V1.3: 从 share_quotes 数组中取第 idx 条
+            const list = state.result.share_quotes || [];
+            let text = '';
+            if (typeof idx === 'number' && list[idx]) {
+                text = list[idx];
+            } else {
+                // 兜底：取第 0 条或老字段
+                text = list[0] || state.result.share_quote || state.result.share_sentence || '';
+            }
+            if (!text) {
+                showToast('没找到可复制的金句');
+                return;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✓ 金句已复制，去发朋友圈吧');
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('✓ 金句已复制');
+            });
+        }
+
+        // ============================================================
+        // 换视角重生成（V1.3）
+        // ============================================================
+        async function regenerate(perspective) {
+            if (!state.result) return;
+            if (state.currentPerspective === perspective) {
+                showToast('当前就是这个视角');
+                return;
+            }
+
+            // 视觉反馈：按钮高亮 + 禁用
+            const buttons = document.querySelectorAll('.perspective-btn');
+            buttons.forEach(b => {
+                if (b.dataset.perspective === perspective) {
+                    b.classList.add('active');
+                } else {
+                    b.style.opacity = '0.4';
+                    b.style.pointerEvents = 'none';
+                }
+            });
+
+            // 顶部 toast 提示
+            const labels = {
+                'close_friend': '🤝 老朋友观察',
+                'bestie': '👭 闺蜜毒舌',
+                'first_meet': '👀 初次见面',
+                'ai_analyst': '🤖 AI 冷静'
+            };
+            showToast(`${labels[perspective] || ''} 切换中...`);
+
+            try {
+                const resp = await fetch('/api/regenerate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        instruction: state.result,
+                        perspective: perspective
+                    })
+                });
+
+                const contentType = resp.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    const text = await resp.text();
+                    throw new Error(`HTTP ${resp.status} - ${text.substring(0, 200)}`);
+                }
+
+                const data = await resp.json();
+                if (!resp.ok || !data.ok) {
+                    throw new Error(data.detail || data.error || '未知错误');
+                }
+
+                // 更新结果并重渲染
+                state.result = data.instruction;
+                state.currentPerspective = perspective;
+                renderResult(data.instruction);
+                showToast(`已切换到 ${data.perspective_name || '新视角'}`);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (e) {
+                showToast('切换失败：' + e.message);
+            } finally {
+                // 恢复按钮状态
+                buttons.forEach(b => {
+                    b.style.opacity = '1';
+                    b.style.pointerEvents = 'auto';
+                    b.classList.remove('active');
+                });
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.textContent = msg;
+            toast.style.cssText = `
+                position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+                background: rgba(139, 92, 246, 0.95); color: white;
+                padding: 12px 24px; border-radius: 999px; font-size: 14px;
+                z-index: 1000; backdrop-filter: blur(10px);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                animation: fadeIn 0.3s;
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+
+        // ============================================================
+        // V1.4：分享功能
+        // ============================================================
+        async function shareProfile() {
+            if (!state.result) {
+                showToast('还没有说明书可分享');
+                return;
+            }
+
+            // 打开弹窗（loading 状态）
+            document.getElementById('share-modal').classList.remove('hidden');
+            document.getElementById('share-loading').classList.remove('hidden');
+            document.getElementById('share-success').classList.add('hidden');
+            document.getElementById('share-error').classList.add('hidden');
+
+            try {
+                const resp = await fetch('/api/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        profile: state.result,
+                        answers: state.answers,
+                        perspective: state.currentPerspective
+                    })
+                });
+
+                const contentType = resp.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    const text = await resp.text();
+                    throw new Error(`HTTP ${resp.status} - ${text.substring(0, 200)}`);
+                }
+
+                const data = await resp.json();
+                if (!resp.ok || !data.ok) {
+                    throw new Error(data.detail || data.error || '未知错误');
+                }
+
+                // 成功
+                state.shareId = data.share_id;
+                const fullUrl = window.location.origin + data.share_url;
+                state.shareUrl = fullUrl;
+
+                document.getElementById('share-url-input').value = fullUrl;
+                document.getElementById('share-link-preview').href = fullUrl;
+
+                // V2.0：保存 report_id，显示"查看我的报告"链接
+                state.reportId = data.report_id;
+                state.reportUrl = window.location.origin + data.report_url;
+                const reportLink = document.getElementById('link-my-report');
+                if (reportLink && data.report_id) {
+                    reportLink.href = state.reportUrl;
+                    reportLink.classList.remove('hidden');
+                }
+                // V1.7：保存后显示"召唤同类"入口
+                const summonLink = document.getElementById('link-summon');
+                if (summonLink && data.report_id) {
+                    summonLink.href = `${window.location.origin}/summon/${data.report_id}`;
+                    summonLink.classList.remove('hidden');
+                }
+
+                document.getElementById('share-loading').classList.add('hidden');
+                document.getElementById('share-success').classList.remove('hidden');
+
+                // V1.5: 随机生成一句分享文案
+                const quotes = [
+                    '这是我的 AI 人格说明书，看看 AI 眼里的我是什么样～',
+                    'AI 说我的运行频率有点特别，你想看看吗？',
+                    '朋友说我像外星人，AI 给我的说明书更离谱。',
+                    '我的说明书里藏了一个我自己都没注意到的我 ✨',
+                    'AI 替我把"我是什么样的"翻译成了人话。',
+                    '这是我的"人类使用说明书"，请妥善保存。',
+                ];
+                const q = quotes[Math.floor(Math.random() * quotes.length)];
+                const quoteEl = document.getElementById('share-random-quote');
+                if (quoteEl) quoteEl.textContent = q;
+            } catch (e) {
+                document.getElementById('share-loading').classList.add('hidden');
+                document.getElementById('share-error').classList.remove('hidden');
+                document.getElementById('share-error-msg').textContent = '生成失败：' + e.message;
+            }
+        }
+
+        // V1.5: 限流友好提示
+        function handleRateLimit(data) {
+            if (data && data.rate_limited) {
+                showToast(data.error || '今天的探索次数已经用完啦，明天再来看看吧');
+                return true;
+            }
+            return false;
+        }
+
+        function copyShareUrl() {
+            const input = document.getElementById('share-url-input');
+            input.select();
+            try {
+                navigator.clipboard.writeText(input.value).then(() => {
+                    showToast('✓ 链接已复制，去发给朋友吧');
+                }).catch(() => {
+                    document.execCommand('copy');
+                    showToast('✓ 链接已复制');
+                });
+            } catch (e) {
+                document.execCommand('copy');
+                showToast('✓ 链接已复制');
+            }
+        }
+
+        function closeShareModal() {
+            document.getElementById('share-modal').classList.add('hidden');
+        }
+
+        // V2.0：直接打开用户自己的报告页
+        function openMyReport() {
+            if (state.reportUrl) {
+                window.open(state.reportUrl, '_blank');
+            } else {
+                // 还没保存过 → 先触发保存
+                showToast('先分享一次生成专属报告');
+                shareProfile();
+            }
+        }
+
+        // V1.7：打开召唤同类页面
+        function openSummon() {
+            if (state.reportId) {
+                window.open(`${window.location.origin}/summon/${state.reportId}`, '_blank');
+            } else {
+                showToast('先保存一次生成专属报告');
+                shareProfile();
+            }
+        }
+
+        function restart() {
+            state.answers = [];
+            state.currentStep = 0;
+            state.result = null;
+            state.currentPerspective = 'close_friend';
+            state.questions = [];
+            showPage('home');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>朋友评价 · 朋友说明书</title>
+    <link rel="stylesheet" href="/static/app.css?v=1">
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- 顶部 3 tab -->
+        <div class="tab-bar mt-2 mb-5 fade-in">
+            <a class="tab-item" href="/me/{{ report_id }}">
+                <span class="tab-item-icon">🪪</span><span>我的身份</span>
+            </a>
+            <a class="tab-item active" href="/reviews/{{ report_id }}">
+                <span class="tab-item-icon">👀</span><span>朋友评价</span>
+            </a>
+            <a class="tab-item" href="/summon/{{ report_id }}">
+                <span class="tab-item-icon">✨</span><span>召唤同类</span>
+            </a>
+        </div>
+
+        <!-- 顶部标题 -->
+        <div class="text-center mb-5 fade-in">
+            <p class="text-xs text-purple-300 tracking-widest mb-1">👀 朋友眼中的我</p>
+            <h1 class="text-xl font-bold mb-2" id="reviews-title" data-raw="{{ profile.main_type or '神秘人' }}">{{ profile.main_type or '神秘人' }}</h1>
+            <p class="text-xs text-gray-500">已收到 <span class="text-purple-300 font-medium">{{ reviews|length }}</span> 位朋友的补充</p>
+        </div>
+
+        {% if reviews|length == 0 %}
+        <!-- 空态：引导分享 -->
+        <div class="app-card-tight p-8 text-center mb-4">
+            <div class="text-5xl mb-3">📭</div>
+            <p class="text-sm text-white mb-2">还没有朋友补充</p>
+            <p class="text-xs text-gray-500 mb-5 leading-relaxed">
+                把分享链接发给朋友<br>
+                让他们帮你"补全"AI 没看到的一面
+            </p>
+            <button onclick="copyShareUrl()" class="btn-primary btn-lg w-full">
+                📋 复制分享链接
+            </button>
+        </div>
+        {% else %}
+        <!-- 评价列表 -->
+        <div class="space-y-3 mb-4">
+            {% for r in reviews %}
+            <div class="app-card-tight p-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-sm font-medium text-white">👤 {{ r.review_user_name or '匿名朋友' }}</span>
+                    {% if r.choice %}
+                    <span class="text-xs text-gray-400">
+                        {% if r.choice == 'accurate' %}🔥 太准了
+                        {% elif r.choice == 'partial' %}🤔 差点东西
+                        {% else %}😂 AI 误会了
+                        {% endif %}
+                    </span>
+                    {% endif %}
+                </div>
+                {% if r.comment %}
+                <p class="text-sm text-gray-200 leading-relaxed mb-2">"{{ r.comment }}"</p>
+                {% else %}
+                <p class="text-xs text-gray-500 italic mb-2">（只选了标签，没写评论）</p>
+                {% endif %}
+                <p class="text-xs text-gray-600">{{ r.created_time | int if r.created_time else '' }}</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- 重新分享 -->
+        <div class="mb-4">
+            <button onclick="copyShareUrl()" class="w-full py-3 rounded-2xl bg-white/5 text-gray-300 text-sm hover:bg-white/10">
+                📋 复制分享链接（再发给朋友）
+            </button>
+        </div>
+        {% endif %}
+
+        <!-- 入口：完整说明书 -->
+        <p class="identity-section-title">▎ 长期沉淀</p>
+        <a href="/manual/{{ report_id }}" class="entry-card">
+            <div class="entry-card-icon">📖</div>
+            <div class="entry-card-content">
+                <div class="entry-card-title">完整说明书</div>
+                <div class="entry-card-desc">人格解析 · 能量模式 · 社交模式 · 使用说明</div>
+            </div>
+            <div class="entry-card-arrow">›</div>
+        </a>
+
+        <p class="text-center text-xs text-gray-600 mt-8 mb-4">
+            朋友说明书 v1.9 · 朋友评价
+        </p>
+    </div>
+
+    <input id="share-url" type="hidden" value="{{ request.host_url }}profile/{{ share_id }}" />
+
+    <script>
+        // emoji + 名字处理
+        (function() {
+            const title = document.getElementById('reviews-title');
+            if (!title) return;
+            const raw = title.dataset.mainType || title.dataset.raw || title.textContent.trim();
+            const match = raw.match(/^([\u{1F300}-\u{1F9FF}\u{2600}-\u{27BF}]+)\s*(.*)/u);
+            if (match) {
+                title.innerHTML = `<span style="font-size: 24px; margin-right: 6px;">${match[1]}</span><span class="gradient-text">${match[2] || '神秘人'}</span>`;
+            } else {
+                title.classList.add('gradient-text');
+            }
+        })();
+
+        function copyShareUrl() {
+            const url = document.getElementById('share-url').value;
+            const ta = document.createElement('textarea');
+            ta.value = url;
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast('✓ 分享链接已复制');
+            } catch (e) { alert('复制失败：' + e.message); }
+            document.body.removeChild(ta);
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.textContent = msg;
+            toast.style.cssText = 'position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: rgba(139, 92, 246, 0.95); color: white; padding: 12px 24px; border-radius: 999px; font-size: 14px; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.3);';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+    </script>
+</body>
+</html>

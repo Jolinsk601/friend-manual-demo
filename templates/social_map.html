@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的同类地图 · 朋友说明书</title>
+    <link rel="stylesheet" href="/static/app.css?v=1">
+    <style>
+        .dna-card {
+            background: linear-gradient(160deg,
+                rgba(139, 92, 246, 0.18) 0%,
+                rgba(236, 72, 153, 0.12) 50%,
+                rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid rgba(167, 139, 250, 0.4);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        .type-pill {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            margin: 2px 4px 2px 0;
+        }
+        .pill-connect { background: rgba(139, 92, 246, 0.25); color: #c4b5fd; }
+        .pill-avoid { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+        .match-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .match-row:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .match-row:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- ============ Loading 态 ============ -->
+        <div id="map-loading" class="hidden">
+            <div class="text-center pt-12 fade-in">
+                <div class="text-5xl mb-4 animate-pulse">🌌</div>
+                <h2 class="text-lg font-bold mb-2 gradient-text">正在构建你的社交宇宙</h2>
+                <p class="text-gray-400 text-sm mb-4">AI 在分析你的同类地图</p>
+            </div>
+        </div>
+
+        <!-- ============ 主体 ============ -->
+        <div id="map-main" class="hidden">
+            <!-- 顶部 -->
+            <div class="text-center mb-6 pt-8 fade-in">
+                <div class="text-5xl mb-3">🌌</div>
+                <h1 class="text-3xl font-bold mb-2 gradient-text">我的同类地图</h1>
+                <p class="text-gray-400 text-sm">
+                    你的社交资产 · 长期沉淀
+                </p>
+            </div>
+
+            <!-- 社交 DNA（V1.8.2 升级大字号） -->
+            <div id="dna-section" class="dna-card mb-6 hidden">
+                <p class="text-xs text-purple-300 mb-3 tracking-widest">我的社交 DNA</p>
+                <h2 class="hero-title mb-2" id="dna-type">-</h2>
+                <p class="text-sm text-gray-300 mb-4">你的隐藏社交模式</p>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="bg-white/5 rounded-xl p-3">
+                        <p class="text-xs text-gray-500 mb-1">⚡ 能量</p>
+                        <p class="text-sm text-white" id="dna-energy">-</p>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-3">
+                        <p class="text-xs text-gray-500 mb-1">🛡 防火墙</p>
+                        <p class="text-sm text-white" id="dna-firewall">-</p>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <p class="text-xs text-purple-300 mb-2">✨ 适合连接</p>
+                    <div id="dna-connect-list"></div>
+                </div>
+                <div>
+                    <p class="text-xs text-red-300 mb-2">⚠️ 避开</p>
+                    <div id="dna-avoid-list"></div>
+                </div>
+            </div>
+
+            <!-- 已发现同类（V1.8.2 卡片化） -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-xs text-purple-300 tracking-widest">已发现同类</p>
+                    <p class="text-xs text-gray-500" id="matches-count">0 个</p>
+                </div>
+                <div class="space-y-2" id="matches-list">
+                    <!-- 动态填充 -->
+                </div>
+            </div>
+
+            <!-- 总结 -->
+            <div class="feedback-bubble rounded-2xl p-5 mb-6">
+                <p class="text-xs text-purple-300 mb-2 tracking-widest">🧠 AI 观察</p>
+                <!-- V1.5opt：AI 一句话洞察（优先） -->
+                <p class="text-sm text-white leading-relaxed mb-3" id="ai-observation"></p>
+                <p class="text-xs text-gray-500 leading-relaxed mb-2" id="matches-summary"></p>
+                <p class="text-xs text-gray-400 italic" id="next-step"></p>
+            </div>
+
+            <!-- 底部 -->
+            <div class="mt-8 text-center space-y-3 mb-4">
+                <a href="/report/{{ report_id }}"
+                   class="block w-full py-3 rounded-2xl bg-white/5 text-gray-400 text-sm text-center hover:bg-white/10">
+                    ← 回到我的报告
+                </a>
+            </div>
+        </div>
+
+        <!-- ============ 空态（没召唤过） ============ -->
+        <div id="map-empty" class="hidden">
+            <div class="text-center pt-12 fade-in">
+                <div class="text-5xl mb-4">🌌</div>
+                <h2 class="text-xl font-bold mb-3">你的同类地图还是空白的</h2>
+                <p class="text-gray-400 text-sm mb-6">先去召唤同类，回来这里就能看到你的社交宇宙</p>
+                <a href="/summon/{{ report_id }}"
+                   class="btn-primary inline-block py-3 px-6 rounded-2xl text-white font-medium">
+                    ✨ 开始召唤
+                </a>
+            </div>
+        </div>
+
+        <p class="text-center text-xs text-gray-600 mt-10 mb-4">
+            朋友说明书 v1.8.2 · 我的同类地图
+        </p>
+    </div>
+
+    <!-- V1.8.2 底部固定操作栏 -->
+    <div class="bottom-action-bar hidden" id="map-bottom-bar">
+        <a href="/summon/{{ report_id }}" class="btn-primary btn-lg w-full text-center" style="display: flex; align-items: center; justify-content: center; text-decoration: none;">
+            ✨ 召唤更多同类
+        </a>
+    </div>
+
+    <script>
+        const state = {
+            reportId: {{ report_id }},
+        };
+
+        // 页面加载
+        (async function() {
+            document.getElementById('map-loading').classList.remove('hidden');
+            try {
+                const resp = await fetch(`/api/social-map/${state.reportId}`);
+                const data = await resp.json();
+                document.getElementById('map-loading').classList.add('hidden');
+                if (!data.ok) {
+                    showEmpty();
+                    return;
+                }
+                if (!data.matches || data.matches.length === 0) {
+                    showEmpty();
+                    return;
+                }
+                renderSocialMap(data);
+            } catch (e) {
+                document.getElementById('map-loading').classList.add('hidden');
+                showEmpty();
+            }
+        })();
+
+        function showEmpty() {
+            document.getElementById('map-empty').classList.remove('hidden');
+        }
+
+        function renderSocialMap(data) {
+            // DNA
+            if (data.social_dna) {
+                const dna = data.social_dna;
+                document.getElementById('dna-section').classList.remove('hidden');
+                document.getElementById('dna-type').textContent = dna.your_type || '未知';
+                document.getElementById('dna-energy').textContent = dna.energy_profile || '未知';
+                document.getElementById('dna-firewall').textContent = dna.firewall_profile || '未知';
+                document.getElementById('dna-connect-list').innerHTML = (dna.connect_with || [])
+                    .map(c => `<span class="type-pill pill-connect">${escapeHtml(c)}</span>`).join('');
+                document.getElementById('dna-avoid-list').innerHTML = (dna.avoid || [])
+                    .map(c => `<span class="type-pill pill-avoid">${escapeHtml(c)}</span>`).join('');
+            }
+
+            // 已发现同类（V1.8.2 卡片化 + 进度条）
+            const matches = data.matches || [];
+            document.getElementById('matches-count').textContent = `${matches.length} 个`;
+            document.getElementById('matches-list').innerHTML = matches.map(m => {
+                const score = Math.round(m.scores.total);
+                return `
+                <div class="app-card-tight p-3 cursor-pointer hover:bg-white/5" onclick="goRelationship('${m.mock_user.id}')">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="text-2xl font-bold gradient-text">${score}<span class="text-sm text-gray-500">%</span></div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-0.5">
+                                <span class="text-sm text-white font-medium">${escapeHtml(m.mock_user.name)}</span>
+                                ${m.rank === 1 ? '<span class="text-xs text-yellow-300">👑 最匹配</span>' : ''}
+                                ${m.has_relationship ? '<span class="text-xs text-purple-300">📖</span>' : ''}
+                            </div>
+                            <div class="text-xs text-gray-500 truncate">${escapeHtml(m.mock_user.main_type)}</div>
+                        </div>
+                    </div>
+                    <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mb-2">
+                        <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500" style="width: ${score}%"></div>
+                    </div>
+                    <div class="text-xs text-gray-400">
+                        ${(m.relationship_types || []).slice(0, 2).map(r => escapeHtml(r.type)).join(' · ') || '潜在同类'}
+                    </div>
+                </div>
+            `;}).join('');
+
+            // 总结（V1.5opt：AI 观察优先，没有再回退到 matches_summary，最后前端拼接兜底）
+            let aiObs = data.ai_observation || data.matches_summary || '';
+            if (!aiObs && data.matches && data.matches.length > 0) {
+                // 兜底：用匹配数据拼一句
+                const high = data.matches.filter(m => (m.scores || {}).total >= 80).length;
+                aiObs = `你已发现 ${data.matches.length} 个潜在同类${high > 0 ? `，其中 ${high} 个高度匹配（≥80%）` : ''}。从匹配模式看，你和他们的关系节奏、能量模式较为接近。`;
+            }
+            document.getElementById('ai-observation').textContent = aiObs;
+            document.getElementById('matches-summary').textContent = data.matches_summary || '';
+            document.getElementById('next-step').textContent = data.next_step || '';
+
+            document.getElementById('map-main').classList.remove('hidden');
+            // V1.8.2: 显示底部固定栏
+            const bar = document.getElementById('map-bottom-bar');
+            if (bar) bar.classList.remove('hidden');
+        }
+
+        function goRelationship(mockUserId) {
+            window.location.href = `/relationship/${state.reportId}/${mockUserId}`;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+    </script>
+</body>
+</html>

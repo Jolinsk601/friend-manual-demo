@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>完整说明书 · 朋友说明书</title>
+    <link rel="stylesheet" href="/static/app.css?v=1">
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- 顶部：返回身份卡 -->
+        <div class="text-center pt-4 mb-2 fade-in">
+            <a href="/me/{{ report_id }}" class="text-xs text-purple-300 hover:text-purple-200">
+                ← 回到我的身份卡
+            </a>
+        </div>
+
+        {% set p = profile or {} %}
+        {% set s = p.stats or {} %}
+        {% set ins = p.instruction or {} %}
+        {% set ov = p.others_view or {} %}
+
+        <!-- 顶部标题 -->
+        <div class="text-center mb-6 fade-in">
+            <p class="text-xs text-purple-300 tracking-widest mb-1">📖 完整说明书</p>
+            <h1 class="text-2xl font-bold gradient-text mb-2" id="manual-name" data-raw="{{ p.main_type or '神秘人' }}">{{ p.main_type or '神秘人' }}</h1>
+            <p class="text-xs text-gray-500">{{ p.one_liner or '' }}</p>
+        </div>
+
+        <!-- 第一节：人格解析 -->
+        <div class="app-card-tight p-5 manual-section">
+            <p class="manual-section-label">▎ 人格解析</p>
+            <h2 class="manual-section-title">{{ p.main_type or '神秘人' }}</h2>
+            {% if p.main_type_reason %}
+            <p class="manual-section-text">{{ p.main_type_reason }}</p>
+            {% endif %}
+            {% if p.tags %}
+            <div class="flex flex-wrap gap-2 mt-3">
+                {% for t in p.tags %}
+                <span class="px-3 py-1 rounded-full bg-white/10 text-xs text-gray-200">{{ t }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 第二节：能量模式 -->
+        <div class="app-card-tight p-5 manual-section">
+            <p class="manual-section-label">▎ 能量模式</p>
+            <h2 class="manual-section-title">⚡ {{ s.energy or '未知' }}</h2>
+            {% if s.energy_status %}
+            <p class="manual-section-text">{{ s.energy_status }}</p>
+            {% endif %}
+        </div>
+
+        <!-- 第三节：社交模式 -->
+        <div class="app-card-tight p-5 manual-section">
+            <p class="manual-section-label">▎ 社交模式</p>
+            <h2 class="manual-section-title">🛡 {{ s.firewall or '未知' }}</h2>
+            {% if s.firewall_status %}
+            <p class="manual-section-text">{{ s.firewall_status }}</p>
+            {% endif %}
+        </div>
+
+        <!-- 第四节：Token / 权限 -->
+        <div class="app-card-tight p-5 manual-section">
+            <p class="manual-section-label">▎ 思考方式 · 好友权限</p>
+            <div class="space-y-3">
+                <div>
+                    <h3 class="manual-section-title text-sm">⚙️ Token · {{ s.token or '—' }}</h3>
+                    {% if s.token_status %}<p class="manual-section-text">{{ s.token_status }}</p>{% endif %}
+                </div>
+                <div>
+                    <h3 class="manual-section-title text-sm">🔑 权限 · {{ s.permission or '—' }}</h3>
+                    {% if s.permission_status %}<p class="manual-section-text">{{ s.permission_status }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 第五节：隐藏 Bug -->
+        <div class="app-card-tight p-5 manual-section">
+            <p class="manual-section-label">▎ 隐藏 Bug</p>
+            <p class="manual-section-text">🐛 {{ p.bug or '（暂无）' }}</p>
+        </div>
+
+        <!-- 第六节：隐藏技能 -->
+        <div class="app-card-tight p-5 manual-section">
+            <p class="manual-section-label">▎ 隐藏技能</p>
+            <p class="manual-section-text">✨ {{ p.skill or '（暂无）' }}</p>
+        </div>
+
+        <!-- 第七节：使用说明 -->
+        {% if ins %}
+        <div class="app-card-tight p-5 manual-section">
+            <p class="manual-section-label">▎ 使用说明</p>
+            <div class="space-y-3">
+                {% if ins.start %}<div><h3 class="manual-section-title text-sm">🚀 开启方式</h3><p class="manual-section-text">{{ ins.start }}</p></div>{% endif %}
+                {% if ins.interact %}<div><h3 class="manual-section-title text-sm">💬 互动方式</h3><p class="manual-section-text">{{ ins.interact }}</p></div>{% endif %}
+                {% if ins.charging %}<div><h3 class="manual-section-title text-sm">🔋 充电方式</h3><p class="manual-section-text">{{ ins.charging }}</p></div>{% endif %}
+                {% if ins.forbidden %}<div><h3 class="manual-section-title text-sm">🚫 禁止操作</h3><p class="manual-section-text">{{ ins.forbidden }}</p></div>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 第八节：他人视角 -->
+        {% if ov %}
+        <div class="app-card-tight p-5 manual-section">
+            <p class="manual-section-label">▎ 他人视角</p>
+            <div class="space-y-3">
+                {% if ov.first_impression %}<div><h3 class="manual-section-title text-sm">👋 第一次见你</h3><p class="manual-section-text">{{ ov.first_impression }}</p></div>{% endif %}
+                {% if ov.familiar %}<div><h3 class="manual-section-title text-sm">🤝 熟了以后</h3><p class="manual-section-text">{{ ov.familiar }}</p></div>{% endif %}
+                {% if ov.miss_you %}<div><h3 class="manual-section-title text-sm">💭 离开以后</h3><p class="manual-section-text">{{ ov.miss_you }}</p></div>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 底部按钮区 -->
+        <div class="mt-6 space-y-3 mb-4">
+            <a href="/reviews/{{ report_id }}" class="block w-full py-3 rounded-2xl bg-white/5 text-gray-300 text-sm text-center hover:bg-white/10">
+                👀 朋友眼中的我（{{ reviews|length }} 条）
+            </a>
+            <a href="/summon/{{ report_id }}" class="block w-full py-3 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-200 text-sm text-center border border-purple-400/30 hover:from-purple-500/30 hover:to-pink-500/30">
+                ✨ 召唤同类
+            </a>
+            <a href="/me/{{ report_id }}" class="block w-full py-3 rounded-2xl bg-white/5 text-gray-400 text-sm text-center hover:bg-white/10">
+                ← 回到身份卡
+            </a>
+        </div>
+
+        <p class="text-center text-xs text-gray-600 mt-8">
+            朋友说明书 v1.9 · 完整说明书
+        </p>
+    </div>
+
+    <script>
+        // 提取 emoji + 名字
+        (function() {
+            const nameEl = document.getElementById('manual-name');
+            if (!nameEl) return;
+            const text = (nameEl.dataset.raw || nameEl.textContent).trim();
+            const match = text.match(/^([\u{1F300}-\u{1F9FF}\u{2600}-\u{27BF}]+)\s*(.*)/u);
+            if (match) {
+                nameEl.innerHTML = `<span style="font-size: 28px; margin-right: 6px;">${match[1]}</span>${match[2] || '神秘人'}`;
+            }
+        })();
+    </script>
+</body>
+</html>

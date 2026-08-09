@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>你和 {{ mock_user.name }} 的关系说明书</title>
+    <link rel="stylesheet" href="/static/app.css?v=1">
+    <style>
+        .section-title {
+            font-size: 0.875rem;
+            color: #c4b5fd;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+        .data-block {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .data-label {
+            font-size: 0.7rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .data-value {
+            font-size: 0.95rem;
+            color: #ffffff;
+            margin-top: 4px;
+        }
+        .pulse-loader {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #a78bfa;
+            margin: 0 4px;
+            animation: pulse-loader 1.4s infinite;
+        }
+        .pulse-loader:nth-child(2) { animation-delay: 0.2s; }
+        .pulse-loader:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse-loader {
+            0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
+            30% { opacity: 1; transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- ============ Loading 态 ============ -->
+        <div id="rel-loading" class="hidden">
+            <div class="text-center pt-12 fade-in">
+                <div class="text-5xl mb-4 animate-pulse">📖</div>
+                <h2 class="text-lg font-bold mb-2 gradient-text">AI 正在分析你们的关系</h2>
+                <p class="text-gray-400 text-sm mb-4">基于双方说明书</p>
+                <div class="flex justify-center gap-2">
+                    <span class="pulse-loader"></span>
+                    <span class="pulse-loader"></span>
+                    <span class="pulse-loader"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ 结果态 ============ -->
+        <div id="rel-result" class="hidden">
+            <div class="text-center mb-6 pt-8 fade-in">
+                <div class="text-5xl mb-3">📖</div>
+                <h1 class="text-3xl font-bold mb-2 gradient-text">你和 {{ mock_user.name }} 的关系说明书</h1>
+                <p class="text-gray-400 text-sm italic">"{{ mock_user.one_liner }}"</p>
+            </div>
+
+            <!-- 总结 -->
+            <div class="feedback-bubble rounded-2xl p-5 mb-6">
+                <p class="text-xs text-purple-300 mb-2 tracking-widest">AI 总结</p>
+                <p class="text-sm text-white leading-relaxed" id="rel-summary"></p>
+            </div>
+
+            <!-- 第一部分：为什么适合（V1.8.2 三维度卡片化） -->
+            <div class="mb-6">
+                <h2 class="section-title">⚡ 为什么 AI 觉得你们适合？</h2>
+
+                <div class="app-card-tight p-4 mb-3">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-lg">⚡</span>
+                        <p class="text-sm font-semibold text-white">能量匹配</p>
+                    </div>
+                    <div class="space-y-2 mb-3">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-400">你</span>
+                            <span class="text-white text-right flex-1 ml-3" id="rel-energy-you">-</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-400">{{ mock_user.name }}</span>
+                            <span class="text-white text-right flex-1 ml-3" id="rel-energy-ta">-</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 leading-relaxed" id="rel-energy-why"></p>
+                </div>
+
+                <div class="app-card-tight p-4 mb-3">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-lg">💬</span>
+                        <p class="text-sm font-semibold text-white">社交节奏</p>
+                    </div>
+                    <p class="text-xs text-gray-300 mb-2" id="rel-social-common"></p>
+                    <p class="text-xs text-gray-400 italic" id="rel-social-why"></p>
+                </div>
+
+                <div class="app-card-tight p-4 mb-3">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-lg">💎</span>
+                        <p class="text-sm font-semibold text-white">价值观</p>
+                    </div>
+                    <p class="text-xs text-gray-300 mb-2" id="rel-value-common"></p>
+                    <p class="text-xs text-gray-400 italic" id="rel-value-why"></p>
+                </div>
+            </div>
+
+            <!-- 第二部分：可能关系（V1.8.2 醒目百分比） -->
+            <div class="mb-6">
+                <h2 class="section-title">☕ 你们可能成为</h2>
+                <div class="space-y-2" id="rel-possible-list"></div>
+            </div>
+
+            <!-- 第三部分：相处建议 -->
+            <div class="mb-6">
+                <h2 class="section-title">💡 相处建议</h2>
+                <div class="space-y-2" id="rel-advice-list"></div>
+            </div>
+
+            <!-- 底部操作 -->
+            <div class="mt-8 text-center space-y-3 mb-4">
+                <a href="/social-map/{{ report_id }}"
+                   class="block w-full py-3 rounded-2xl bg-white/5 text-gray-300 text-sm text-center hover:bg-white/10">
+                    🌌 查看我的同类地图
+                </a>
+                <a href="/summon/{{ report_id }}"
+                   class="block w-full py-3 rounded-2xl bg-white/5 text-gray-400 text-sm text-center hover:bg-white/10">
+                    ← 回到召唤结果
+                </a>
+            </div>
+        </div>
+
+        <!-- ============ 错误态 ============ -->
+        <div id="rel-error" class="hidden">
+            <div class="text-center pt-20 fade-in">
+                <div class="text-6xl mb-4">😢</div>
+                <h2 class="text-xl font-bold mb-3" id="rel-error-title">生成失败</h2>
+                <p class="text-gray-400 text-sm mb-6" id="rel-error-msg">未知错误</p>
+                <button onclick="generateRelationship()"
+                        class="btn-primary py-3 px-6 rounded-2xl text-white font-medium">
+                    🔄 重试
+                </button>
+            </div>
+        </div>
+
+        <p class="text-center text-xs text-gray-600 mt-10 mb-4">
+            朋友说明书 v1.8.2 · 双人关系说明书
+        </p>
+    </div>
+
+    <!-- V1.8.2 底部固定操作栏：开始对话 -->
+    <div class="bottom-action-bar hidden" id="rel-bottom-bar">
+        <a href="/icebreak/{{ report_id }}/{{ mock_user.id }}" class="btn-primary btn-lg w-full text-center" style="display: flex; align-items: center; justify-content: center; text-decoration: none;">
+            💬 用 AI 破冰话题开始第一次对话
+        </a>
+    </div>
+
+    <script>
+        const state = {
+            reportId: {{ report_id }},
+            mockUserId: "{{ mock_user.id }}",
+        };
+
+        // 页面加载：先查 DB 有没有缓存，有就直接展示
+        (async function() {
+            try {
+                const resp = await fetch(`/api/relationship/${state.reportId}/${state.mockUserId}`);
+                const data = await resp.json();
+                if (data.ok && data.relationship) {
+                    renderRelationship(data.relationship.analysis);
+                } else {
+                    // 没有缓存 → 立即生成
+                    generateRelationship();
+                }
+            } catch (e) {
+                // 出错也尝试生成
+                generateRelationship();
+            }
+        })();
+
+        async function generateRelationship() {
+            showSection('loading');
+            try {
+                const resp = await fetch(`/api/relationship/${state.reportId}/${state.mockUserId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({}),
+                });
+                const data = await resp.json();
+                if (!resp.ok || !data.ok) {
+                    throw new Error(data.error || '生成失败');
+                }
+                renderRelationship(data.data);
+            } catch (e) {
+                showError('生成失败', e.message);
+            }
+        }
+
+        function renderRelationship(data) {
+            // 总结
+            document.getElementById('rel-summary').textContent = data.match_summary || '你们是潜在的好朋友。';
+
+            // 能量匹配
+            const e = data.why_fit?.energy || {};
+            document.getElementById('rel-energy-you').textContent = e.you || '未知';
+            document.getElementById('rel-energy-ta').textContent = e.ta || '未知';
+            document.getElementById('rel-energy-why').textContent = (e.common_ground || '') + ' ' + (e.why_fit || '');
+
+            // 社交
+            const s = data.why_fit?.social || {};
+            document.getElementById('rel-social-common').textContent = s.common_ground || '';
+            document.getElementById('rel-social-why').textContent = s.why_fit || '';
+
+            // 价值观
+            const v = data.why_fit?.value || {};
+            document.getElementById('rel-value-common').textContent = v.common_ground || '';
+            document.getElementById('rel-value-why').textContent = v.why_fit || '';
+
+            // 可能关系（V1.8.2 加进度条，更醒目）
+            const relList = document.getElementById('rel-possible-list');
+            relList.innerHTML = (data.possible_relationships || []).map(r => {
+                const score = Math.round(r.score || 0);
+                return `
+                <div class="app-card-tight p-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex-1 min-w-0">
+                            <span class="text-sm text-white font-medium">${escapeHtml(r.type || '')}</span>
+                            <p class="text-xs text-gray-500 mt-0.5">${escapeHtml(r.scenario || '')}</p>
+                        </div>
+                        <span class="text-base gradient-text font-bold ml-3">${score}%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500" style="width: ${score}%"></div>
+                    </div>
+                </div>
+            `;}).join('');
+
+            // 相处建议
+            const adviceList = document.getElementById('rel-advice-list');
+            adviceList.innerHTML = (data.advice || []).map((a, i) => `
+                <div class="bg-white/5 rounded-xl p-3 flex gap-3">
+                    <span class="text-purple-300 text-sm font-medium">${i + 1}.</span>
+                    <p class="text-xs text-gray-300 leading-relaxed flex-1">${escapeHtml(a)}</p>
+                </div>
+            `).join('');
+
+            showSection('result');
+        }
+
+        function showSection(name) {
+            ['loading', 'result', 'error'].forEach(s => {
+                document.getElementById(`rel-${s}`).classList.add('hidden');
+            });
+            document.getElementById(`rel-${name}`).classList.remove('hidden');
+            // V1.8.2: 同步控制底部固定栏
+            const bar = document.getElementById('rel-bottom-bar');
+            if (bar) {
+                if (name === 'result') bar.classList.remove('hidden');
+                else bar.classList.add('hidden');
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function showError(title, msg) {
+            document.getElementById('rel-error-title').textContent = title;
+            document.getElementById('rel-error-msg').textContent = msg;
+            showSection('error');
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+    </script>
+</body>
+</html>

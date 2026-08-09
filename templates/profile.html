@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{ profile.main_type or '朋友说明书' }} · 朋友说明书</title>
+    <link rel="stylesheet" href="/static/app.css?v=1">
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- ============ 顶部品牌 V1.9 ============ -->
+        <div class="text-center pt-4 mb-6 fade-in">
+            <p class="text-xs text-purple-300 tracking-widest mb-1">这是 TA 的人类身份卡</p>
+            <p class="text-xs text-gray-500">看看 AI 如何描述 TA</p>
+        </div>
+
+        {% set s = profile.stats or {} %}
+        {% set ins = profile.instruction or {} %}
+        {% set ov = profile.others_view or {} %}
+        {% set share_quotes = profile.share_quotes or [] %}
+
+        <!-- ============ 第一屏：快速了解（3 秒抓眼球） ============ -->
+        <div class="hero-card rounded-3xl p-7 text-center glow mb-6 fade-in">
+            <p class="text-xs text-gray-400 mb-2 tracking-widest">TA 的隐藏身份</p>
+            <h1 class="text-4xl font-bold gradient-text mb-5">{{ profile.main_type or '神秘人' }}</h1>
+
+            <!-- 3 个关键词 -->
+            {% if profile.tags %}
+            <div class="flex flex-wrap gap-2 justify-center mb-6">
+                {% for t in profile.tags %}
+                <span class="px-3 py-1 rounded-full bg-white/10 text-xs text-gray-200">{{ t }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="border-t border-white/10 pt-5">
+                <p class="text-xs text-gray-500 mb-2">一句话</p>
+                <p class="text-lg text-white font-medium leading-relaxed">"{{ profile.one_liner or '这个人很神秘' }}"</p>
+            </div>
+
+            {% if profile.main_type_reason %}
+            <p class="text-xs text-gray-400 italic mt-5 leading-relaxed">{{ profile.main_type_reason }}</p>
+            {% endif %}
+        </div>
+
+        <!-- ============ 第二屏：人类运行参数 ============ -->
+        <div class="app-card-tight p-5 mb-6 fade-in">
+            <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2">
+                <span>⚙️</span><span>人类运行参数</span>
+            </h3>
+            <div class="space-y-4">
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl flex-shrink-0">⚡</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-baseline gap-2 mb-1 flex-wrap">
+                            <span class="text-xs text-gray-500">Token</span>
+                            <span class="text-sm font-semibold text-white">{{ s.token or '—' }}</span>
+                        </div>
+                        {% if s.token_status %}<p class="text-xs text-gray-400 leading-relaxed">{{ s.token_status }}</p>{% endif %}
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl flex-shrink-0">🛡</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-baseline gap-2 mb-1 flex-wrap">
+                            <span class="text-xs text-gray-500">防火墙</span>
+                            <span class="text-sm font-semibold text-white">{{ s.firewall or '—' }}</span>
+                        </div>
+                        {% if s.firewall_status %}<p class="text-xs text-gray-400 leading-relaxed">{{ s.firewall_status }}</p>{% endif %}
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl flex-shrink-0">🔋</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-baseline gap-2 mb-1 flex-wrap">
+                            <span class="text-xs text-gray-500">能量</span>
+                            <span class="text-sm font-semibold text-white">{{ s.energy or '—' }}</span>
+                        </div>
+                        {% if s.energy_status %}<p class="text-xs text-gray-400 leading-relaxed">{{ s.energy_status }}</p>{% endif %}
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl flex-shrink-0">🔑</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-baseline gap-2 mb-1 flex-wrap">
+                            <span class="text-xs text-gray-500">权限</span>
+                            <span class="text-sm font-semibold text-white">{{ s.permission or '—' }}</span>
+                        </div>
+                        {% if s.permission_status %}<p class="text-xs text-gray-400 leading-relaxed">{{ s.permission_status }}</p>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ 第三屏：朋友视角内容 ============ -->
+        <div class="space-y-3 mb-6">
+            <div class="app-card-tight p-4 fade-in">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-lg">🐛</span>
+                    <span class="text-xs text-gray-500">隐藏 Bug</span>
+                </div>
+                <p class="text-sm text-white leading-relaxed">{{ profile.bug or '（暂无）' }}</p>
+            </div>
+            <div class="app-card-tight p-4 fade-in">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-lg">✨</span>
+                    <span class="text-xs text-gray-500">隐藏技能</span>
+                </div>
+                <p class="text-sm text-white leading-relaxed">{{ profile.skill or '（暂无）' }}</p>
+            </div>
+        </div>
+
+        <!-- 朋友使用说明 -->
+        <div class="app-card-tight p-5 mb-6 fade-in">
+            <h3 class="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
+                <span>📖</span><span>朋友使用说明</span>
+            </h3>
+            <div class="space-y-3">
+                <div class="flex items-start gap-3">
+                    <span class="text-xs text-gray-500 min-w-[64px] mt-0.5">🚀 开启</span>
+                    <p class="text-sm text-white flex-1 leading-relaxed">{{ ins.start or '（暂无）' }}</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-xs text-gray-500 min-w-[64px] mt-0.5">💬 互动</span>
+                    <p class="text-sm text-white flex-1 leading-relaxed">{{ ins.interact or '（暂无）' }}</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-xs text-gray-500 min-w-[64px] mt-0.5">🔌 充电</span>
+                    <p class="text-sm text-white flex-1 leading-relaxed">{{ ins.charging or '（暂无）' }}</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-xs text-gray-500 min-w-[64px] mt-0.5">⛔ 禁忌</span>
+                    <p class="text-sm text-white flex-1 leading-relaxed">{{ ins.forbidden or '（暂无）' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 别人眼中的 TA -->
+        {% if ov.first_impression or ov.familiar or ov.miss_you %}
+        <div class="app-card-tight p-5 mb-6 fade-in">
+            <h3 class="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
+                <span>👀</span><span>别人眼中的 TA</span>
+            </h3>
+            <div class="space-y-3">
+                {% if ov.first_impression %}
+                <div class="flex items-start gap-3">
+                    <span class="text-xs text-gray-500 min-w-[80px] mt-0.5">第一次见 TA</span>
+                    <p class="text-sm text-white flex-1 leading-relaxed">{{ ov.first_impression }}</p>
+                </div>
+                {% endif %}
+                {% if ov.familiar %}
+                <div class="flex items-start gap-3">
+                    <span class="text-xs text-gray-500 min-w-[80px] mt-0.5">熟了以后</span>
+                    <p class="text-sm text-white flex-1 leading-relaxed">{{ ov.familiar }}</p>
+                </div>
+                {% endif %}
+                {% if ov.miss_you %}
+                <div class="flex items-start gap-3">
+                    <span class="text-xs text-gray-500 min-w-[80px] mt-0.5">离开以后</span>
+                    <p class="text-sm text-white flex-1 leading-relaxed">{{ ov.miss_you }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- TA 的人生名言（V1.5opt：只展示 1 句，去掉多选/循环） -->
+        {% if share_quotes and share_quotes|length > 0 %}
+        <div class="hero-card rounded-2xl p-6 mb-6 fade-in">
+            <p class="text-xs text-gray-400 mb-3 tracking-widest text-center">✦ TA 的人生名言</p>
+            <p class="text-base text-white leading-relaxed text-center italic">
+                "{{ share_quotes[0] }}"
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- ============ V2.0：朋友补充人类观察 ============ -->
+        <div class="app-card-tight p-5 mb-6 fade-in">
+            <h3 class="text-sm font-semibold text-gray-300 mb-2 flex items-center gap-2">
+                <span>👀</span><span>给 TA 补充一句人类观察</span>
+            </h3>
+            <p class="text-xs text-gray-500 mb-4">AI 负责分析，你负责认识 TA。</p>
+
+            <!-- 评价统计（人格化展示） -->
+            {% set total_reviews = reviews|length %}
+            {% if total_reviews > 0 %}
+            <div class="bg-white/5 rounded-xl p-3 mb-4 text-xs text-gray-300">
+                已收到 <span class="text-purple-300 font-medium">{{ total_reviews }}</span> 位朋友的补充
+            </div>
+            {% endif %}
+
+            <!-- 评价输入区 -->
+            <div class="space-y-3">
+                <!-- 昵称 -->
+                <input
+                    id="reviewer-name"
+                    type="text"
+                    maxlength="20"
+                    placeholder="你是？（让 TA 知道谁补充的）"
+                    class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-600 text-sm"
+                />
+
+                <!-- 3 个快捷评价（V1.9 升级：横向 grid + 大 emoji） -->
+                <div class="quick-rating-row">
+                    <button
+                        onclick="selectChoice('accurate')"
+                        class="quick-rating-btn"
+                        data-choice="accurate">
+                        <span class="quick-rating-emoji">🔥</span>
+                        太准了<br><span class="text-xs opacity-80">被AI偷听</span>
+                    </button>
+                    <button
+                        onclick="selectChoice('partial')"
+                        class="quick-rating-btn"
+                        data-choice="partial">
+                        <span class="quick-rating-emoji">🤔</span>
+                        差点东西<br><span class="text-xs opacity-80">少了一点</span>
+                    </button>
+                    <button
+                        onclick="selectChoice('misunderstand')"
+                        class="quick-rating-btn"
+                        data-choice="misunderstand">
+                        <span class="quick-rating-emoji">😂</span>
+                        AI误会TA<br><span class="text-xs opacity-80">完全不对</span>
+                    </button>
+                </div>
+
+                <!-- 自定义评论（V2.0：也可以只写评论） -->
+                <textarea
+                    id="review-comment"
+                    rows="2"
+                    maxlength="500"
+                    placeholder="写一句只有朋友才知道的 TA（可选）"
+                    class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-600 text-sm resize-none"
+                ></textarea>
+
+                <button
+                    id="btn-submit-review"
+                    onclick="submitReview()"
+                    class="btn-primary btn-lg w-full">
+                    📤 提交补充
+                </button>
+                <p class="text-xs text-gray-500 text-center">选标签 或 写评论 至少一个就行</p>
+            </div>
+
+            <!-- 已收到的评价列表 -->
+            {% if reviews %}
+            <div class="mt-5 pt-5 border-t border-white/10">
+                <p class="text-xs text-gray-500 mb-3">朋友补充（{{ total_reviews }} 条）</p>
+                <div class="space-y-3">
+                    {% for r in reviews %}
+                    <div class="bg-white/5 rounded-xl p-3">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-sm font-medium text-white">👤 {{ r.review_user_name }}</span>
+                            {% if r.choice %}
+                            <span class="text-xs text-gray-500">
+                                {% if r.choice == 'accurate' %}🔥 AI 说中了
+                                {% elif r.choice == 'partial' %}🤔 差点东西
+                                {% else %}😂 AI 误会
+                                {% endif %}
+                            </span>
+                            {% endif %}
+                        </div>
+                        {% if r.comment %}
+                        <p class="text-sm text-gray-300 leading-relaxed">"{{ r.comment }}"</p>
+                        {% else %}
+                        <p class="text-xs text-gray-500 italic">（只选了标签，没写评论）</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ============ CTA：看完 TA 的，你也生成自己的 ============ -->
+        <div class="text-center py-8 fade-in">
+            <p class="text-base text-gray-300 mb-2 leading-relaxed">
+                看完 TA 的人类说明书
+            </p>
+            <p class="text-base text-white font-medium mb-6 leading-relaxed">
+                你也想知道自己的运行参数吗？
+            </p>
+            <a href="/"
+               class="btn-primary btn-lg inline-block text-white" style="text-decoration: none;">
+                ✨ 生成我的朋友说明书
+            </a>
+            <p class="text-xs text-gray-600 mt-4">5 道题 · 约 1 分钟 · 属于你的说明书</p>
+        </div>
+
+        <p class="text-center text-xs text-gray-600 mt-8">
+            朋友说明书 v1.9 · 身份卡
+        </p>
+    </div>
+
+    <script>
+        // ============================================================
+        // V1.5：朋友评价交互
+        // ============================================================
+        let selectedChoice = null;
+        const SHARE_ID = '{{ share_id }}';
+
+        function selectChoice(choice) {
+            selectedChoice = choice;
+            // V1.9: 适配新 .quick-rating-btn class
+            document.querySelectorAll('.quick-rating-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.choice === choice);
+            });
+        }
+
+        async function submitReview() {
+            const nameInput = document.getElementById('reviewer-name');
+            const commentInput = document.getElementById('review-comment');
+            const name = nameInput.value.trim();
+            const comment = commentInput.value.trim();
+
+            if (!name) {
+                alert('请先填一下你的称呼（让 TA 知道谁评价的）');
+                nameInput.focus();
+                return;
+            }
+            // V2.0：choice 和 comment 至少有一个
+            if (!selectedChoice && !comment) {
+                alert('写一句你对 TA 的真实观察吧（选标签 或 写评论 至少一个）');
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit-review');
+            btn.disabled = true;
+            btn.textContent = '提交中...';
+
+            try {
+                const resp = await fetch('/api/reviews', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        share_id: SHARE_ID,
+                        review_user_name: name,
+                        choice: selectedChoice || null,
+                        comment: comment || null
+                    })
+                });
+
+                const data = await resp.json();
+                if (!resp.ok || !data.ok) {
+                    throw new Error(data.error || '提交失败');
+                }
+
+                // 成功 → 刷新页面看新评价
+                alert(`✓ 评价成功！感谢「{{ "${name}" }}」的反馈`);
+                location.reload();
+            } catch (e) {
+                alert('提交失败：' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '提交评价';
+            }
+        }
+    </script>
+</body>
+</html>

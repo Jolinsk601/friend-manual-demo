@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>认识 {{ mock_user.name }} · 朋友说明书</title>
+    <link rel="stylesheet" href="/static/app.css?v=1">
+    <style>
+        /* V1.5: chat 占位页样式 */
+        .chat-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+        .chat-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .chat-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+        .chat-type {
+            font-size: 11px;
+            color: rgba(196, 181, 253, 0.9);
+        }
+        .chat-intro {
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px dashed rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            margin: 24px 0;
+        }
+        .chat-intro-text {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.6;
+        }
+        .chat-intro-hint {
+            font-size: 11px;
+            color: rgba(196, 181, 253, 0.7);
+            margin-top: 8px;
+        }
+        /* 输入框 - V1.5 灰着 */
+        .chat-input-bar {
+            position: sticky;
+            bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0.55;
+        }
+        .chat-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            padding: 4px 8px;
+        }
+        .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        .chat-send-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.4);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: not-allowed;
+        }
+        .v2-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(236, 72, 153, 0.3) 100%);
+            font-size: 10px;
+            color: white;
+            letter-spacing: 0.1em;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- V1.5: 顶部 3 tab -->
+        <div class="tab-bar mt-2 mb-5 fade-in">
+            <a class="tab-item" href="/me/{{ report_id }}">
+                <span class="tab-item-icon">🪪</span><span>我的身份</span>
+            </a>
+            <a class="tab-item" href="/summon/{{ report_id }}">
+                <span class="tab-item-icon">✨</span><span>寻找契合</span>
+            </a>
+            <a class="tab-item active" href="#">
+                <span class="tab-item-icon">💬</span><span>认识TA</span>
+            </a>
+        </div>
+
+        <!-- 头部：TA 的信息 -->
+        <div class="chat-top fade-in">
+            <div class="chat-avatar">{% if mock_user.main_type and mock_user.main_type|length > 0 %}{{ mock_user.main_type[0] }}{% else %}✨{% endif %}</div>
+            <div style="flex: 1;">
+                <div class="chat-name">{{ mock_user.name }}</div>
+                <div class="chat-type">{{ mock_user.main_type }} · {{ mock_user.one_liner }}</div>
+            </div>
+            <a href="/summon/{{ report_id }}" class="text-xs text-purple-300">‹ 返回</a>
+        </div>
+
+        <!-- 一句话介绍 -->
+        <div class="chat-intro fade-in">
+            <p class="chat-intro-text">
+                你和 <span style="color: #fff; font-weight: 500;">{{ mock_user.name }}</span> 可能会聊得来
+            </p>
+            <p class="chat-intro-hint">"{{ mock_user.share_quote or mock_user.one_liner }}"</p>
+        </div>
+
+        <!-- V1.5 占位：未来 V2 加载聊天记录 + 关系记忆 -->
+
+        <!-- V2 预告 -->
+        <div class="text-center fade-in" style="margin: 32px 0 16px;">
+            <div class="v2-badge">V2 · 即将上线</div>
+            <p class="text-xs text-gray-500 mt-3 leading-relaxed">
+                V2 将在此开启你和 TA 的关系故事：<br>
+                💬 聊天小智囊 · 📖 我们的故事 · 🧠 AI 关系记忆
+            </p>
+        </div>
+
+        <!-- 输入框（V1.5 不可用，V2 启用） -->
+        <div class="chat-input-bar">
+            <input
+                class="chat-input"
+                type="text"
+                placeholder="V2 上线后，在这里和 TA 开始第一句对话..."
+                disabled
+            />
+            <button class="chat-send-btn" disabled title="V2 上线后启用">↑</button>
+        </div>
+
+        <p class="text-center text-xs text-gray-600 mt-6 mb-4">
+            朋友说明书 v1.5 · 聊天入口
+        </p>
+    </div>
+</body>
+</html>
